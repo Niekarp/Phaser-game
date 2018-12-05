@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "module": "commonjs"
+        ,"outDir": "./js-out"
+    },
+    "files": [
+        "./src/game.ts",
+        "./src/scenes/game-scene.ts"
+    ]
+}
