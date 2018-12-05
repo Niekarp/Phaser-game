@@ -1,6 +1,5 @@
 /// <reference path="../typescript/phaser.d.ts"/>
 
-// import 'phaser';
 import { GameScene } from './scenes/game-scene';
 
 // Game configuration

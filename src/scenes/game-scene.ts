@@ -2,28 +2,28 @@
 export class GameScene extends Phaser.Scene
 {
 	// Game settings
-	// TODO scale water properly
-	private aquariumHeight = 1000;
+		// TODO scale water properly
+	private waterHeightLimit: number = 1000;
 
 	// Game world elements
-	private platforms;
+	private platforms: Phaser.Physics.Arcade.StaticGroup;
+	private aquariums: Phaser.Physics.Arcade.StaticGroup;
 	private water = {
+		// represents the scale by which the water image is multiplied
 		level: 0.1,
-		texture: null
+		object: <Phaser.Physics.Arcade.Image>null
 	};
-	private bubbles;
-	private aquariums;
 
 	// Game livings
-	private player;
+	private player: Phaser.Physics.Arcade.Sprite;
 	private octopus = {
 		isReleased: false,
-		sprite: null
+		object: <Phaser.Physics.Arcade.Sprite>null
 	};
 
 	// Game objects
-	private cursors;
-	private bubbles_emitter;
+	private cursors: Phaser.Input.Keyboard.CursorKeys;
+	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
 	constructor()
 	{
@@ -39,7 +39,6 @@ export class GameScene extends Phaser.Scene
 	preload(): void
 	{
 		this.load.image('background_planks', '../assets/background_planks.png');
-		console.log('hello');
 		this.load.image('platform', '../assets/platform.png');
 		this.load.image('water', '../assets/water.png');
 		this.load.image('foreground_glass', '../assets/foreground_glass.png');
@@ -71,14 +70,14 @@ export class GameScene extends Phaser.Scene
 		this.player.setBounce(0.2);
 		this.player.setCollideWorldBounds(true);
 	
-		this.octopus.sprite = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
-		this.octopus.sprite.setBounce(1);
-		this.octopus.sprite.setCollideWorldBounds(true);
-		this.octopus.sprite.disableBody(true, true);
+		this.octopus.object = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
+		this.octopus.object.setBounce(1);
+		this.octopus.object.setCollideWorldBounds(true);
+		this.octopus.object.disableBody(true, true);
 	
 		// loading game world elements
-		this.water.texture = this.physics.add.staticImage(400, 535, 'water').setScale(2, 0.1);
-		this.water.texture.alpha = 0.5;
+		this.water.object = this.physics.add.staticImage(400, 535, 'water').setScale(2, 0.1);
+		this.water.object.alpha = 0.5;
 	
 		this.add.image(400, 300, 'foreground_glass');
 	
@@ -110,28 +109,28 @@ export class GameScene extends Phaser.Scene
 		});
 	
 			// animations: particles
-		this.bubbles = this.add.particles('bubbles');
+		let bubblesEmitterManager = this.add.particles('bubbles');
 	
-		this.bubbles_emitter = this.bubbles.createEmitter({
+		this.bubblesEmitter = bubblesEmitterManager.createEmitter({
 			speed: 60,
 			scale: { start: 1, end: 0 },
 			// blendMode: 'SCREEN',
 			maxParticles: 10,
 			accelerationY: -400
 		});
-		this.bubbles_emitter.startFollow(this.player);
-		this.bubbles_emitter.stop();
+		this.bubblesEmitter.startFollow(this.player);
+		this.bubblesEmitter.stop();
 	
 		// collisions
 		this.physics.add.collider(this.player, this.platforms);
 	
-		this.physics.add.collider(this.octopus.sprite, this.platforms);
-		this.physics.add.collider(this.octopus.sprite, this.player);
+		this.physics.add.collider(this.octopus.object, this.platforms);
+		this.physics.add.collider(this.octopus.object, this.player);
 	}
 
 	update(): void
 	{
-		const playerInWater = this.physics.world.overlap(this.player, this.water.texture);
+		const playerInWater = this.physics.world.overlap(this.player, this.water.object);
 		// player movement
 		if (this.cursors.left.isDown)
 		{
@@ -178,26 +177,26 @@ export class GameScene extends Phaser.Scene
 		// player bubbles
 		if (playerInWater)
 		{
-			this.bubbles_emitter.emitParticle();
+			this.bubblesEmitter.emitParticle();
 		}
 	
 		// water level change
-		if (this.water.texture.displayHeight <= this.aquariumHeight)
+		if (this.water.object.displayHeight <= this.waterHeightLimit)
 		{
 			this.water.level += 0.01;
-			this.water.texture.setScale(2, this.water.level).refreshBody();
+			this.water.object.setScale(2, this.water.level).refreshBody();
 		}
 	
 		// aquariums releases
-		if (this.physics.world.overlap(this.water.texture, this.aquariums) && !this.octopus.isReleased)
+		if (this.physics.world.overlap(this.water.object, this.aquariums) && !this.octopus.isReleased)
 		{
 			this.octopus.isReleased = true;
-			this.octopus.sprite.enableBody(true, 80, 250 - 32 - 100, true, true);
-			this.octopus.sprite.setVelocity(50, 20);
+			this.octopus.object.enableBody(true, 80, 250 - 32 - 100, true, true);
+			this.octopus.object.setVelocity(50, 20);
 		}
-		if (this.octopus.sprite.visible)
+		if (this.octopus.object.visible)
 		{
-			this.octopus.sprite.anims.play('life', true);
+			this.octopus.object.anims.play('life', true);
 		}
 	}
 }
