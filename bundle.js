@@ -44,10 +44,6 @@ var GameScene = /** @class */ (function (_super) {
         // Game settings
         // TODO scale water properly
         _this.waterHeightLimit = 1000;
-        _this.octopus = {
-            isReleased: false,
-            object: null
-        };
         return _this;
     }
     // Phaser scene functions
@@ -75,10 +71,10 @@ var GameScene = /** @class */ (function (_super) {
         this.player = this.physics.add.sprite(100, 450, 'player');
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
-        this.octopus.object = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
-        this.octopus.object.setBounce(1);
-        this.octopus.object.setCollideWorldBounds(true);
-        this.octopus.object.disableBody(true, true);
+        this.octopus = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
+        this.octopus.setBounce(1);
+        this.octopus.setCollideWorldBounds(true);
+        this.octopus.disableBody(true, true);
         // loading game world elements
         this.water = this.physics.add.staticImage(400, 535, 'water');
         this.water.setScale(2, 0);
@@ -120,8 +116,8 @@ var GameScene = /** @class */ (function (_super) {
         this.bubblesEmitter.stop();
         // collisions
         this.physics.add.collider(this.player, this.platforms);
-        this.physics.add.collider(this.octopus.object, this.platforms);
-        this.physics.add.collider(this.octopus.object, this.player);
+        this.physics.add.collider(this.octopus, this.platforms);
+        this.physics.add.collider(this.octopus, this.player);
     };
     GameScene.prototype.update = function () {
         // TODO: try to remove <any>
@@ -162,19 +158,16 @@ var GameScene = /** @class */ (function (_super) {
         }
         // water level change
         if (this.water.displayHeight <= this.waterHeightLimit) {
-            // this.water.level += 1;
-            // this.water.setScale(2, this.water.level).refreshBody();
             this.water.setDisplaySize(this.water.displayWidth, this.water.displayHeight + 1).refreshBody();
             console.log(this.water.displayHeight);
         }
         // aquariums release monsters :o
-        if (this.physics.world.overlap(this.water, this.aquariums) && !this.octopus.isReleased) {
-            this.octopus.isReleased = true;
-            this.octopus.object.enableBody(true, 80, 250 - 32 - 100, true, true);
-            this.octopus.object.setVelocity(50, 20);
+        if (this.physics.world.overlap(this.water, this.aquariums) && !this.octopus.body.enable) {
+            this.octopus.enableBody(true, 80, 250 - 32 - 100, true, true);
+            this.octopus.setVelocity(50, 20);
         }
-        if (this.octopus.object.visible) {
-            this.octopus.object.anims.play('life', true);
+        if (this.octopus.body.enable) {
+            this.octopus.anims.play('life', true);
         }
     };
     return GameScene;
