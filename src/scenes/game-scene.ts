@@ -8,11 +8,7 @@ export class GameScene extends Phaser.Scene
 	// Game world elements
 	private platforms: Phaser.Physics.Arcade.StaticGroup;
 	private aquariums: Phaser.Physics.Arcade.StaticGroup;
-	private water = {
-		// represents the scale by which the water image is multiplied
-		level: 0.1,
-		object: <Phaser.Physics.Arcade.Image>null
-	};
+	private water: Phaser.Physics.Arcade.Image;
 
 	// Game livings
 	private player: Phaser.Physics.Arcade.Sprite;
@@ -49,7 +45,7 @@ export class GameScene extends Phaser.Scene
 		this.load.image('bubbles', '../assets/bubble_small.png');
 	
 		this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
-	};;;
+	}
 
 	create(): void
 	{
@@ -76,10 +72,9 @@ export class GameScene extends Phaser.Scene
 		this.octopus.object.disableBody(true, true);
 	
 		// loading game world elements
-		this.water.object = this.physics.add.staticImage(400, 535, 'water');
-		this.water.object.setScale(2, 1);
-		this.water.object.setDisplaySize(this.water.object.width, 0);
-		this.water.object.alpha = 0.5;
+		this.water = this.physics.add.staticImage(400, 535, 'water');
+		this.water.setScale(2, 0);
+		this.water.alpha = 0.5;
 	
 		this.add.image(400, 300, 'foreground_glass');
 	
@@ -132,7 +127,7 @@ export class GameScene extends Phaser.Scene
 	update(): void
 	{
 		// TODO: try to remove <any>
-		const playerInWater: boolean = this.physics.world.overlap(<any>this.player, <any>this.water.object);
+		const playerInWater: boolean = this.physics.world.overlap(<any>this.player, <any>this.water);
 		// player movement
 		if (this.cursors.left.isDown)
 		{
@@ -184,15 +179,17 @@ export class GameScene extends Phaser.Scene
 		}
 	
 		// water level change
-		if (this.water.object.displayHeight <= this.waterHeightLimit)
+		if (this.water.displayHeight <= this.waterHeightLimit)
 		{
-			this.water.level += 1;
-			// this.water.object.setScale(2, this.water.level).refreshBody();
-			this.water.object.setDisplaySize(this.water.object.width*2, this.water.level).refreshBody();
+			// this.water.level += 1;
+			// this.water.setScale(2, this.water.level).refreshBody();
+			this.water.setDisplaySize(this.water.displayWidth, this.water.displayHeight + 1).refreshBody();
+
+			console.log(this.water.displayHeight);
 		}
 	
 		// aquariums release monsters :o
-		if (this.physics.world.overlap(<any>this.water.object, <any>this.aquariums) && !this.octopus.isReleased)
+		if (this.physics.world.overlap(<any>this.water, <any>this.aquariums) && !this.octopus.isReleased)
 		{
 			this.octopus.isReleased = true;
 			this.octopus.object.enableBody(true, 80, 250 - 32 - 100, true, true);
