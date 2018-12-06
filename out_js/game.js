@@ -1,7 +1,6 @@
 "use strict";
-/// <reference path="../typescript/phaser.d.ts"/>
+/// <reference path="../typescript_defs/phaser.d.ts"/>
 exports.__esModule = true;
-// import 'phaser';
 var game_scene_1 = require("./scenes/game-scene");
 // Game configuration
 var gameConfig = {

@@ -1,4 +1,4 @@
-/// <reference path="../typescript/phaser.d.ts"/>
+/// <reference path="../typescript_defs/phaser.d.ts"/>
 
 import { GameScene } from './scenes/game-scene';
 

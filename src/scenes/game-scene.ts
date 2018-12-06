@@ -76,7 +76,9 @@ export class GameScene extends Phaser.Scene
 		this.octopus.object.disableBody(true, true);
 	
 		// loading game world elements
-		this.water.object = this.physics.add.staticImage(400, 535, 'water').setScale(2, 0.1);
+		this.water.object = this.physics.add.staticImage(400, 535, 'water');
+		this.water.object.setScale(2, 1);
+		this.water.object.setDisplaySize(this.water.object.width, 0);
 		this.water.object.alpha = 0.5;
 	
 		this.add.image(400, 300, 'foreground_glass');
@@ -114,7 +116,6 @@ export class GameScene extends Phaser.Scene
 		this.bubblesEmitter = bubblesEmitterManager.createEmitter({
 			speed: 60,
 			scale: { start: 1, end: 0 },
-			// blendMode: 'SCREEN',
 			maxParticles: 10,
 			accelerationY: -400
 		});
@@ -130,7 +131,8 @@ export class GameScene extends Phaser.Scene
 
 	update(): void
 	{
-		const playerInWater = this.physics.world.overlap(this.player, this.water.object);
+		// TODO: try to remove <any>
+		const playerInWater: boolean = this.physics.world.overlap(<any>this.player, <any>this.water.object);
 		// player movement
 		if (this.cursors.left.isDown)
 		{
@@ -165,6 +167,7 @@ export class GameScene extends Phaser.Scene
 			this.player.anims.play('turn');
 		}
 	
+		// player jump
 		if (this.cursors.up.isDown && this.player.body.touching.down)
 		{
 			this.player.setVelocityY(-330);
@@ -183,12 +186,13 @@ export class GameScene extends Phaser.Scene
 		// water level change
 		if (this.water.object.displayHeight <= this.waterHeightLimit)
 		{
-			this.water.level += 0.01;
-			this.water.object.setScale(2, this.water.level).refreshBody();
+			this.water.level += 1;
+			// this.water.object.setScale(2, this.water.level).refreshBody();
+			this.water.object.setDisplaySize(this.water.object.width*2, this.water.level).refreshBody();
 		}
 	
-		// aquariums releases
-		if (this.physics.world.overlap(this.water.object, this.aquariums) && !this.octopus.isReleased)
+		// aquariums release monsters :o
+		if (this.physics.world.overlap(<any>this.water.object, <any>this.aquariums) && !this.octopus.isReleased)
 		{
 			this.octopus.isReleased = true;
 			this.octopus.object.enableBody(true, 80, 250 - 32 - 100, true, true);
