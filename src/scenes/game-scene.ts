@@ -2,7 +2,6 @@
 export class GameScene extends Phaser.Scene
 {
 	// Game settings
-		// TODO scale water properly
 	private waterHeightLimit: number = 1000;
 
 	// Game world elements
@@ -31,6 +30,8 @@ export class GameScene extends Phaser.Scene
 	// Phaser scene functions
 	preload(): void
 	{
+		// this.load.image('tiles', '../assets/background_planks.png')
+
 		this.load.image('background_planks', '../assets/background_planks.png');
 		this.load.image('platform', '../assets/platform.png');
 		this.load.image('water', '../assets/water.png');
