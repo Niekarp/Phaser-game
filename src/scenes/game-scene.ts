@@ -49,7 +49,7 @@ export class GameScene extends Phaser.Scene
 		this.load.image('bubbles', '../assets/bubble_small.png');
 	
 		this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
-	}
+	};;;
 
 	create(): void
 	{
