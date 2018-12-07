@@ -21,7 +21,12 @@ export class GameScene extends Phaser.Scene
 
 	// Game objects
 	private mainCamera: Phaser.Cameras.Scene2D.Camera;
-	private cursors: Phaser.Input.Keyboard.CursorKeys;
+	private inputKeys: {
+		W: Phaser.Input.Keyboard.Key;
+		S: Phaser.Input.Keyboard.Key;
+		A: Phaser.Input.Keyboard.Key;
+		D: Phaser.Input.Keyboard.Key;
+	};
 	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
 	constructor()
@@ -81,7 +86,12 @@ export class GameScene extends Phaser.Scene
 		this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
 	
 		// input
-		this.cursors = this.input.keyboard.createCursorKeys();
+		this.inputKeys = {
+			W: this.input.keyboard.addKey('W'),
+			S: this.input.keyboard.addKey('S'),
+			A: this.input.keyboard.addKey('A'),
+			D: this.input.keyboard.addKey('D')
+		};
 	
 		// animations
 		this.anims.create({
@@ -137,7 +147,7 @@ export class GameScene extends Phaser.Scene
 	{
 		const playerInWater: boolean = this.physics.world.overlap(<any>this.player, <any>this.water);
 		// player movement
-		if (this.cursors.left.isDown)
+		if (this.inputKeys.A.isDown)
 		{
 			if (playerInWater)
 			{
@@ -150,7 +160,7 @@ export class GameScene extends Phaser.Scene
 	
 			this.player.anims.play('left', true);
 		}
-		else if (this.cursors.right.isDown)
+		else if (this.inputKeys.D.isDown)
 		{
 			if (playerInWater)
 			{
@@ -171,11 +181,11 @@ export class GameScene extends Phaser.Scene
 		}
 	
 			// player movement -> player jump
-		if (this.cursors.up.isDown && this.player.body.blocked.down)
+		if (this.inputKeys.W.isDown && this.player.body.blocked.down)
 		{
 			this.player.setVelocityY(-330);
 		}
-		else if (this.cursors.up.isDown && playerInWater)
+		else if (this.inputKeys.W.isDown && playerInWater)
 		{
 			this.player.setVelocityY(-600);
 		}

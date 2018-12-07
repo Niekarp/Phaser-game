@@ -63,7 +63,12 @@ var GameScene = /** @class */ (function (_super) {
         this.water.alpha = 0.5;
         this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
         // input
-        this.cursors = this.input.keyboard.createCursorKeys();
+        this.inputKeys = {
+            W: this.input.keyboard.addKey('W'),
+            S: this.input.keyboard.addKey('S'),
+            A: this.input.keyboard.addKey('A'),
+            D: this.input.keyboard.addKey('D')
+        };
         // animations
         this.anims.create({
             key: 'left',
@@ -110,7 +115,7 @@ var GameScene = /** @class */ (function (_super) {
     GameScene.prototype.update = function () {
         var playerInWater = this.physics.world.overlap(this.player, this.water);
         // player movement
-        if (this.cursors.left.isDown) {
+        if (this.inputKeys.A.isDown) {
             if (playerInWater) {
                 this.player.setVelocityX(-600);
             }
@@ -119,7 +124,7 @@ var GameScene = /** @class */ (function (_super) {
             }
             this.player.anims.play('left', true);
         }
-        else if (this.cursors.right.isDown) {
+        else if (this.inputKeys.D.isDown) {
             if (playerInWater) {
                 this.player.setVelocityX(600);
             }
@@ -133,10 +138,10 @@ var GameScene = /** @class */ (function (_super) {
             this.player.anims.play('turn');
         }
         // player movement -> player jump
-        if (this.cursors.up.isDown && this.player.body.blocked.down) {
+        if (this.inputKeys.W.isDown && this.player.body.blocked.down) {
             this.player.setVelocityY(-330);
         }
-        else if (this.cursors.up.isDown && playerInWater) {
+        else if (this.inputKeys.W.isDown && playerInWater) {
             this.player.setVelocityY(-600);
         }
         // player bubbles
