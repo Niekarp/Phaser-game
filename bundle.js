@@ -42,33 +42,34 @@ var GameScene = /** @class */ (function (_super) {
             key: "GameScene"
         }) || this;
         // Game settings
-        // TODO scale water properly
-        _this.waterHeightLimit = 1000;
+        _this.waterHeightLimit = 1200;
+        _this.gameMapCenterX = 1040;
+        _this.gameMapCenterY = 640;
         return _this;
     }
     // Phaser scene functions
     GameScene.prototype.preload = function () {
+        this.load.image("tiles", "../assets/world_tails.png");
+        this.load.tilemapTiledJSON("map", "../assets/game_map.json");
         this.load.image('background_planks', '../assets/background_planks.png');
-        this.load.image('platform', '../assets/platform.png');
+        this.load.image('aquarium1', '../assets/aquarium_1.png');
+        this.load.image('bubbles', '../assets/bubble_small.png');
         this.load.image('water', '../assets/water.png');
         this.load.image('foreground_glass', '../assets/foreground_glass.png');
-        this.load.image('aquarium1', '../assets/aquarium_1.png');
         this.load.spritesheet('player', '../assets/player_xd.png', { frameWidth: 152, frameHeight: 89 });
-        this.load.image('bubbles', '../assets/bubble_small.png');
         this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
     };
     GameScene.prototype.create = function () {
         // loading game world elements
-        this.add.image(400, 300, 'background_planks');
-        this.platforms = this.physics.add.staticGroup();
-        this.platforms.create(400, 568, 'platform').setScale(2).refreshBody();
-        this.platforms.create(600, 510, 'platform');
-        this.platforms.create(50, 250, 'platform');
-        this.platforms.create(750, 220, 'platform');
+        this.add.tileSprite(this.gameMapCenterX, this.gameMapCenterY, 2080, 1280, 'background_planks');
+        // loading game map
+        var map = this.make.tilemap({ key: "map" });
+        var tileset = map.addTilesetImage("world_tails", "tiles");
+        this.worldLayer = map.createStaticLayer("World", tileset, 0, 0);
         this.aquariums = this.physics.add.staticGroup();
         this.aquariums.create(80, 250 - 32, 'aquarium1');
         // loading game livings
-        this.player = this.physics.add.sprite(100, 450, 'player');
+        this.player = this.physics.add.sprite(this.gameMapCenterX, this.gameMapCenterY, 'player');
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
         this.octopus = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
@@ -76,10 +77,10 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.setCollideWorldBounds(true);
         this.octopus.disableBody(true, true);
         // loading game world elements
-        this.water = this.physics.add.staticImage(400, 535, 'water');
-        this.water.setScale(2, 0);
+        this.water = this.physics.add.staticImage(this.gameMapCenterX, this.gameMapCenterY + 550, 'water');
+        this.water.setDisplaySize(2080, 0);
         this.water.alpha = 0.5;
-        this.add.image(400, 300, 'foreground_glass');
+        this.add.image(this.gameMapCenterX, this.gameMapCenterY, 'foreground_glass').setDisplaySize(2040, 1280);
         // input
         this.cursors = this.input.keyboard.createCursorKeys();
         // animations
@@ -104,7 +105,7 @@ var GameScene = /** @class */ (function (_super) {
             frameRate: 10,
             repeat: -1
         });
-        // animations: particles
+        // animations -> particles
         var bubblesEmitterManager = this.add.particles('bubbles');
         this.bubblesEmitter = bubblesEmitterManager.createEmitter({
             speed: 60,
@@ -115,12 +116,16 @@ var GameScene = /** @class */ (function (_super) {
         this.bubblesEmitter.startFollow(this.player);
         this.bubblesEmitter.stop();
         // collisions
-        this.physics.add.collider(this.player, this.platforms);
-        this.physics.add.collider(this.octopus, this.platforms);
+        this.physics.world.setBounds(0, 0, 2080, 1280);
+        this.worldLayer.setCollisionByProperty({ collides: true });
+        this.physics.add.collider(this.player, this.worldLayer);
+        this.physics.add.collider(this.octopus, this.worldLayer);
         this.physics.add.collider(this.octopus, this.player);
+        // camera
+        this.mainCamera = this.cameras.main;
+        this.mainCamera.startFollow(this.player);
     };
     GameScene.prototype.update = function () {
-        // TODO: try to remove <any>
         var playerInWater = this.physics.world.overlap(this.player, this.water);
         // player movement
         if (this.cursors.left.isDown) {
@@ -145,8 +150,8 @@ var GameScene = /** @class */ (function (_super) {
             this.player.setVelocityX(0);
             this.player.anims.play('turn');
         }
-        // player jump
-        if (this.cursors.up.isDown && this.player.body.touching.down) {
+        // player movement -> player jump
+        if (this.cursors.up.isDown && this.player.body.blocked.down) {
             this.player.setVelocityY(-330);
         }
         else if (this.cursors.up.isDown && playerInWater) {
@@ -159,7 +164,7 @@ var GameScene = /** @class */ (function (_super) {
         // water level change
         if (this.water.displayHeight <= this.waterHeightLimit) {
             this.water.setDisplaySize(this.water.displayWidth, this.water.displayHeight + 1).refreshBody();
-            console.log(this.water.displayHeight);
+            this.water.setPosition(this.gameMapCenterX, this.gameMapCenterY + 550 - (this.water.displayHeight / 2));
         }
         // aquariums release monsters :o
         if (this.physics.world.overlap(this.water, this.aquariums) && !this.octopus.body.enable) {
