@@ -61,7 +61,7 @@ var GameScene = /** @class */ (function (_super) {
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
         this.water.alpha = 0.5;
-        this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(2040, 1280);
+        this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
         // input
         this.cursors = this.input.keyboard.createCursorKeys();
         // animations
@@ -105,6 +105,7 @@ var GameScene = /** @class */ (function (_super) {
         // camera
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
+        this.mainCamera.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);
     };
     GameScene.prototype.update = function () {
         var playerInWater = this.physics.world.overlap(this.player, this.water);

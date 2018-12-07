@@ -78,7 +78,7 @@ export class GameScene extends Phaser.Scene
 		this.water.setDisplaySize(this.gameWorldWidth, 0);
 		this.water.alpha = 0.5;
 	
-		this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(2040, 1280);
+		this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
 	
 		// input
 		this.cursors = this.input.keyboard.createCursorKeys();
@@ -130,6 +130,7 @@ export class GameScene extends Phaser.Scene
 		// camera
 		this.mainCamera = this.cameras.main;
 		this.mainCamera.startFollow(this.player);
+		this.mainCamera.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);
 	}
 
 	update(): void
