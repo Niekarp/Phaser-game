@@ -2,12 +2,16 @@
 export class GameScene extends Phaser.Scene
 {
 	// Game settings
-	private waterHeightLimit: number = 1200;
-	private gameMapCenterX: number = 1040;
-	private gameMapCenterY: number = 640;
+	private gameWorldWidth: number = 2080;
+	private gameWorldHeight: number = 1280;
+	private gameWorldCenterX: number = this.gameWorldWidth / 2;
+	private gameWorldCenterY: number = this.gameWorldHeight / 2;
+
+	private groundHeight: number = 4 * 32;
+	private waterHeightLimit: number = this.gameWorldHeight - this.groundHeight - 100;
 
 	// Game world elements
-	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;
+	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;	
 	private aquariums: Phaser.Physics.Arcade.StaticGroup;
 	private water: Phaser.Physics.Arcade.Image;
 
@@ -49,7 +53,7 @@ export class GameScene extends Phaser.Scene
 	create(): void
 	{	
 		// loading game world elements
-		this.add.tileSprite(this.gameMapCenterX, this.gameMapCenterY, 2080, 1280, 'background_planks');
+		this.add.tileSprite(this.gameWorldCenterX, this.gameWorldCenterY, this.gameWorldWidth, this.gameWorldHeight, 'background_planks');
 
 		// loading game map
 		const map = this.make.tilemap({ key: "map" });
@@ -60,7 +64,7 @@ export class GameScene extends Phaser.Scene
 		this.aquariums.create(80, 250 - 32, 'aquarium1');
 	
 		// loading game livings
-		this.player = this.physics.add.sprite(this.gameMapCenterX, this.gameMapCenterY, 'player');
+		this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
 		this.player.setBounce(0.2);
 		this.player.setCollideWorldBounds(true);
 
@@ -70,11 +74,11 @@ export class GameScene extends Phaser.Scene
 		this.octopus.disableBody(true, true);
 	
 		// loading game world elements
-		this.water = this.physics.add.staticImage(this.gameMapCenterX, this.gameMapCenterY + 550, 'water');
-		this.water.setDisplaySize(2080, 0);
+		this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
+		this.water.setDisplaySize(this.gameWorldWidth, 0);
 		this.water.alpha = 0.5;
 	
-		this.add.image(this.gameMapCenterX, this.gameMapCenterY, 'foreground_glass').setDisplaySize(2040, 1280);
+		this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(2040, 1280);
 	
 		// input
 		this.cursors = this.input.keyboard.createCursorKeys();
@@ -116,7 +120,7 @@ export class GameScene extends Phaser.Scene
 		this.bubblesEmitter.stop();
 	
 		// collisions
-		this.physics.world.setBounds(0, 0, 2080, 1280);
+		this.physics.world.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);
 
 		this.worldLayer.setCollisionByProperty({ collides: true });
 		this.physics.add.collider(this.player, this.worldLayer);
@@ -136,7 +140,7 @@ export class GameScene extends Phaser.Scene
 		{
 			if (playerInWater)
 			{
-				this.player.setVelocityX(-60);
+				this.player.setVelocityX(-600);
 			}
 			else
 			{
@@ -149,7 +153,7 @@ export class GameScene extends Phaser.Scene
 		{
 			if (playerInWater)
 			{
-				this.player.setVelocityX(60);
+				this.player.setVelocityX(600);
 			}
 			else
 			{
@@ -172,7 +176,7 @@ export class GameScene extends Phaser.Scene
 		}
 		else if (this.cursors.up.isDown && playerInWater)
 		{
-			this.player.setVelocityY(-60);
+			this.player.setVelocityY(-600);
 		}
 	
 		// player bubbles
@@ -185,7 +189,7 @@ export class GameScene extends Phaser.Scene
 		if (this.water.displayHeight <= this.waterHeightLimit)
 		{
 			this.water.setDisplaySize(this.water.displayWidth, this.water.displayHeight + 1).refreshBody();
-			this.water.setPosition(this.gameMapCenterX, this.gameMapCenterY + 550 - (this.water.displayHeight / 2));
+			this.water.setPosition(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight - (this.water.displayHeight / 2));
 		}
 	
 		// aquariums release monsters :o
