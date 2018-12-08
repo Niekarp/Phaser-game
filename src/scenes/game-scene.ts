@@ -99,8 +99,6 @@ export class GameScene extends Phaser.Scene
 		const map = this.make.tilemap({ key: "map" });
 		const tileset = map.addTilesetImage("world_tails", "tiles");
 		this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
-
-		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
 	
 		// loading game livings
 		this.player =  this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
@@ -112,13 +110,34 @@ export class GameScene extends Phaser.Scene
 		this.octopus.setBounce(0);
 		this.octopus.setCollideWorldBounds(true);
 		this.octopus.setDefaultVelocity(300);
-		this.octopus.setLightStickEmitter(this.lightStickEmitter);
 		this.octopus.setPlayer(this.player);
 		(<any>this.octopus.body.allowGravity) = false;
 		this.octopus.onPlayerCaught(() => this.playerCaught());
 		this.hydrants = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'hydrant');
 		this.hydrants.setCollideWorldBounds(true);
 		
+		// particles
+		let bubblesEmitterManager = this.add.particles('bubbles');
+
+		this.bubblesEmitter = bubblesEmitterManager.createEmitter({
+			speed: 60,
+			scale: { start: 1, end: 0 },
+			maxParticles: 10,
+			accelerationY: -400,
+		});
+		this.bubblesEmitter.startFollow(this.player);
+		this.bubblesEmitter.stop();
+		
+		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
+		this.lightStickEmitter.bubbleEmitterManager = bubblesEmitterManager;
+		this.lightStickEmitter.bubbleEmitterConfig = {
+			speed: 10,
+			scale: { start: 0.5, end: 0 },
+			accelerationY: -400,
+			frequency: 400,
+		};		
+		this.octopus.setLightStickEmitter(this.lightStickEmitter);
+
 		// loading game world elements
 		this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
 		this.water.setDisplaySize(this.gameWorldWidth, 0);
@@ -171,18 +190,6 @@ export class GameScene extends Phaser.Scene
 			frames: [ { key: 'hydrant', frame: 1 } ],
 			frameRate: 10
 		});
-	
-			// animations -> particles
-		let bubblesEmitterManager = this.add.particles('bubbles');
-	
-		this.bubblesEmitter = bubblesEmitterManager.createEmitter({
-			speed: 60,
-			scale: { start: 1, end: 0 },
-			maxParticles: 10,
-			accelerationY: -400
-		});
-		this.bubblesEmitter.startFollow(this.player);
-		this.bubblesEmitter.stop();
 	
 		// collisions
 		this.physics.world.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);

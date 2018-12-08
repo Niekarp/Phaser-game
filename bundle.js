@@ -61,11 +61,12 @@ var __extends = (this && this.__extends) || (function () {
 exports.__esModule = true;
 var LightStick = /** @class */ (function (_super) {
     __extends(LightStick, _super);
-    function LightStick(scene, x, y, texture, frame) {
+    function LightStick(scene, x, y, texture, frame, bubbleEmitter) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
         scene.physics.add.sys.displayList.add(_this);
         scene.physics.add.sys.updateList.add(_this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.DYNAMIC_BODY);
+        _this.bubbleEmitter = bubbleEmitter;
         return _this;
         //this.disableBody(true, true);
     }
@@ -79,6 +80,8 @@ exports.__esModule = true;
 var LightStick_1 = require("./LightStick");
 var LightStickEmitter = /** @class */ (function () {
     function LightStickEmitter(scene, texture) {
+        this.velocity = 400;
+        this.followOffsetY = -20;
         this.lightSticks = [];
         this.scene = scene;
         this.texture = texture;
@@ -98,7 +101,7 @@ var LightStickEmitter = /** @class */ (function () {
     LightStickEmitter.prototype["throw"] = function (x, y, throwAngle) {
         var lightColor = Phaser.Math.Between(0xaaaaaa, 0xffffff);
         var lightStick = new LightStick_1.LightStick(this.scene, x, y, this.texture);
-        lightStick.setVelocity(400 * Math.cos(throwAngle), 400 * Math.sin(throwAngle));
+        lightStick.setVelocity(this.velocity * Math.cos(throwAngle), this.velocity * Math.sin(throwAngle));
         lightStick.setScale(0.4);
         lightStick.angle = Phaser.Math.FloatBetween(0, 180);
         lightStick.setCollideWorldBounds(true);
@@ -106,6 +109,13 @@ var LightStickEmitter = /** @class */ (function () {
         lightStick.light.setIntensity(2);
         lightStick.light.setColor(lightColor);
         lightStick.setTint(lightColor);
+        if (this.bubbleEmitterManager) {
+            var emitter = this.bubbleEmitterManager.createEmitter(this.bubbleEmitterConfig);
+            lightStick.bubbleEmitter = emitter;
+            lightStick.bubbleEmitter.startFollow(lightStick);
+            lightStick.bubbleEmitter.start();
+            lightStick.bubbleEmitter.followOffset.y = this.followOffsetY;
+        }
         if (this.scene.lights.lights.length > this.scene.lights.maxLights) {
             this.scene.lights.removeLight(this.lightSticks[0].light);
             this.lightSticks[0].destroy();
@@ -338,7 +348,6 @@ var GameScene = /** @class */ (function (_super) {
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
-        this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // loading game livings
         this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
         this.player.setBounce(0.2);
@@ -348,12 +357,30 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
         this.octopus.setDefaultVelocity(300);
-        this.octopus.setLightStickEmitter(this.lightStickEmitter);
         this.octopus.setPlayer(this.player);
         this.octopus.body.allowGravity = false;
         this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
         this.hydrants = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'hydrant');
         this.hydrants.setCollideWorldBounds(true);
+        // particles
+        var bubblesEmitterManager = this.add.particles('bubbles');
+        this.bubblesEmitter = bubblesEmitterManager.createEmitter({
+            speed: 60,
+            scale: { start: 1, end: 0 },
+            maxParticles: 10,
+            accelerationY: -400
+        });
+        this.bubblesEmitter.startFollow(this.player);
+        this.bubblesEmitter.stop();
+        this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
+        this.lightStickEmitter.bubbleEmitterManager = bubblesEmitterManager;
+        this.lightStickEmitter.bubbleEmitterConfig = {
+            speed: 10,
+            scale: { start: 0.5, end: 0 },
+            accelerationY: -400,
+            frequency: 400
+        };
+        this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
@@ -400,16 +427,6 @@ var GameScene = /** @class */ (function (_super) {
             frames: [{ key: 'hydrant', frame: 1 }],
             frameRate: 10
         });
-        // animations -> particles
-        var bubblesEmitterManager = this.add.particles('bubbles');
-        this.bubblesEmitter = bubblesEmitterManager.createEmitter({
-            speed: 60,
-            scale: { start: 1, end: 0 },
-            maxParticles: 10,
-            accelerationY: -400
-        });
-        this.bubblesEmitter.startFollow(this.player);
-        this.bubblesEmitter.stop();
         // collisions
         this.physics.world.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);
         this.worldLayer.setCollisionByProperty({ collides: true });

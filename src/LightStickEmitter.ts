@@ -2,6 +2,11 @@ import { LightStick } from "./LightStick";
 
 export class LightStickEmitter
 {
+    public velocity: number = 400;
+    public bubbleEmitterManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
+    public bubbleEmitterConfig: ParticleEmitterConfig;
+    public followOffsetY: number = -20;
+
     private lightSticks: LightStick[] = [];
     private scene: Phaser.Scene;
     private texture: string;
@@ -32,14 +37,24 @@ export class LightStickEmitter
     {
         var lightColor = Phaser.Math.Between(0xaaaaaa, 0xffffff);
         var lightStick = new LightStick(this.scene, x, y, this.texture);
-		lightStick.setVelocity(400 * Math.cos(throwAngle), 400 * Math.sin(throwAngle));
+        lightStick.setVelocity(this.velocity * Math.cos(throwAngle),
+                this.velocity * Math.sin(throwAngle));
 		lightStick.setScale(0.4);
 		lightStick.angle = Phaser.Math.FloatBetween(0, 180);
 		lightStick.setCollideWorldBounds(true);
 		lightStick.light = this.scene.lights.addLight(lightStick.x, lightStick.y, 400)
 		lightStick.light.setIntensity(2)
 		lightStick.light.setColor(lightColor);
-		lightStick.setTint(lightColor);
+        lightStick.setTint(lightColor);
+        
+        if(this.bubbleEmitterManager)
+        {
+            let emitter = this.bubbleEmitterManager.createEmitter(this.bubbleEmitterConfig);
+            lightStick.bubbleEmitter = emitter;
+            lightStick.bubbleEmitter.startFollow(lightStick);
+            lightStick.bubbleEmitter.start();
+            lightStick.bubbleEmitter.followOffset.y = this.followOffsetY;
+        }
 		
 		if(this.scene.lights.lights.length > this.scene.lights.maxLights)
 		{

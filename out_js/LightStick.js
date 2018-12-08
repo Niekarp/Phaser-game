@@ -15,11 +15,12 @@ var __extends = (this && this.__extends) || (function () {
 exports.__esModule = true;
 var LightStick = /** @class */ (function (_super) {
     __extends(LightStick, _super);
-    function LightStick(scene, x, y, texture, frame) {
+    function LightStick(scene, x, y, texture, frame, bubbleEmitter) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
         scene.physics.add.sys.displayList.add(_this);
         scene.physics.add.sys.updateList.add(_this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.DYNAMIC_BODY);
+        _this.bubbleEmitter = bubbleEmitter;
         return _this;
         //this.disableBody(true, true);
     }

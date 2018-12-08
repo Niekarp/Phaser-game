@@ -74,7 +74,6 @@ var GameScene = /** @class */ (function (_super) {
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
-        this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // loading game livings
         this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
         this.player.setBounce(0.2);
@@ -84,12 +83,30 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
         this.octopus.setDefaultVelocity(300);
-        this.octopus.setLightStickEmitter(this.lightStickEmitter);
         this.octopus.setPlayer(this.player);
         this.octopus.body.allowGravity = false;
         this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
         this.hydrants = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'hydrant');
         this.hydrants.setCollideWorldBounds(true);
+        // particles
+        var bubblesEmitterManager = this.add.particles('bubbles');
+        this.bubblesEmitter = bubblesEmitterManager.createEmitter({
+            speed: 60,
+            scale: { start: 1, end: 0 },
+            maxParticles: 10,
+            accelerationY: -400
+        });
+        this.bubblesEmitter.startFollow(this.player);
+        this.bubblesEmitter.stop();
+        this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
+        this.lightStickEmitter.bubbleEmitterManager = bubblesEmitterManager;
+        this.lightStickEmitter.bubbleEmitterConfig = {
+            speed: 10,
+            scale: { start: 0.5, end: 0 },
+            accelerationY: -400,
+            frequency: 400
+        };
+        this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
@@ -136,16 +153,6 @@ var GameScene = /** @class */ (function (_super) {
             frames: [{ key: 'hydrant', frame: 1 }],
             frameRate: 10
         });
-        // animations -> particles
-        var bubblesEmitterManager = this.add.particles('bubbles');
-        this.bubblesEmitter = bubblesEmitterManager.createEmitter({
-            speed: 60,
-            scale: { start: 1, end: 0 },
-            maxParticles: 10,
-            accelerationY: -400
-        });
-        this.bubblesEmitter.startFollow(this.player);
-        this.bubblesEmitter.stop();
         // collisions
         this.physics.world.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);
         this.worldLayer.setCollisionByProperty({ collides: true });
