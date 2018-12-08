@@ -2,6 +2,7 @@
 import { LightStickEmitter } from '../LightStickEmitter';
 import { Octopus } from '../Octopus';
 import { Aquarium } from '../Aquarium';
+import { LightStick } from '../LightStick';
 
 export class GameScene extends Phaser.Scene
 {
@@ -37,8 +38,7 @@ export class GameScene extends Phaser.Scene
 		D: Phaser.Input.Keyboard.Key;
 	};
 	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
-
-	private lightSticks: Phaser.Physics.Arcade.Sprite[] = [];
+	private lightStickEmitter: LightStickEmitter;
 
 	constructor()
 	{
@@ -99,6 +99,8 @@ export class GameScene extends Phaser.Scene
 		const map = this.make.tilemap({ key: "map" });
 		const tileset = map.addTilesetImage("world_tails", "tiles");
 		this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
+
+		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
 	
 		// loading game livings
 		this.player =  this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
@@ -110,16 +112,12 @@ export class GameScene extends Phaser.Scene
 		this.octopus.setBounce(0);
 		this.octopus.setCollideWorldBounds(true);
 		this.octopus.setDefaultVelocity(300);
-		this.octopus.setLightSticks(this.lightSticks);
+		this.octopus.setLightStickEmitter(this.lightStickEmitter);
 		this.octopus.setPlayer(this.player);
 		(<any>this.octopus.body.allowGravity) = false;
-<<<<<<< HEAD
 		this.octopus.onPlayerCaught(() => this.playerCaught());
-=======
-
 		this.hydrants = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'hydrant');
 		this.hydrants.setCollideWorldBounds(true);
->>>>>>> 7524fead78d10c56c634a581e2b82bd5f4a10419
 		
 		// loading game world elements
 		this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
@@ -192,12 +190,8 @@ export class GameScene extends Phaser.Scene
 		this.worldLayer.setCollisionByProperty({ collides: true });
 		this.physics.add.collider(this.player, this.worldLayer);
 		this.physics.add.collider(this.octopus, this.worldLayer);
-<<<<<<< HEAD
 		//this.physics.add.collider(this.octopus, this.player);
-=======
-		this.physics.add.collider(this.octopus, this.player);
 		this.physics.add.collider(this.worldLayer, this.hydrants);
->>>>>>> 7524fead78d10c56c634a581e2b82bd5f4a10419
 
 		// camera
 		this.mainCamera = this.cameras.main;
@@ -273,26 +267,12 @@ export class GameScene extends Phaser.Scene
 		}
 	
 		// hydrants
-		this.hydrants.anims.play('hydrant_turn');
-		
-
-		// sticks
-		this.lightSticks.forEach((lightStick : Phaser.Physics.Arcade.Sprite) => {
-			if(!lightStick.body.blocked.down) 
-			{
-				lightStick.angle += 10;				
-			}
-			else
-			{
-				lightStick.setDragX(500);
-			}
-			(<Phaser.GameObjects.Light>(<any>lightStick).light).x = lightStick.x;
-			(<Phaser.GameObjects.Light>(<any>lightStick).light).y = lightStick.y;
-		});
+		this.hydrants.anims.play('hydrant_turn');		
 
 		// update objects
 		this.octopus.update(time, delta);
 		this.aquarium.update(time, delta);
+		this.lightStickEmitter.update(time, delta);
 	}
 
 	throwLightStick(): void
@@ -303,31 +283,11 @@ export class GameScene extends Phaser.Scene
 		relativePlayerX += this.player.x- this.mainCamera.midPoint.x;
 		relativePlayerY += this.player.y - this.mainCamera.midPoint.y;
 
-		var lightColor = Phaser.Math.Between(0xaaaaaa, 0xffffff);
 		var throwAngle = Phaser.Math.Angle.Between(
 			relativePlayerX, relativePlayerY,
 			this.input.activePointer.x, this.input.activePointer.y);
 
-		var lightStick = this.physics.add.sprite(this.player.x, this.player.y, 'lightstick');
-		lightStick.setVelocity(400 * Math.cos(throwAngle),
-			400 * Math.sin(throwAngle));
-		lightStick.setScale(0.4);
-		lightStick.angle = Phaser.Math.FloatBetween(0, 180);
-		lightStick.setCollideWorldBounds(true);
-		(<any>lightStick).light = this.lights.addLight(lightStick.x, lightStick.y, 400)
-				.setIntensity(2)
-				.setColor(lightColor);
-		lightStick.setTint(lightColor);
-		
-		if(this.lights.lights.length > this.lights.maxLights)
-		{
-			let light = (<Phaser.GameObjects.Light>(<any>this.lightSticks[0]).light);
-			this.lights.removeLight(light);
-			(<Phaser.Physics.Arcade.Sprite>this.lightSticks[0]).destroy();
-			this.lightSticks.shift();
-		}
-		
-		this.lightSticks.push(lightStick);
+		let lightStick = this.lightStickEmitter.throw(this.player.x, this.player.y, throwAngle);
 
 		this.physics.add.collider(lightStick, this.worldLayer);
 		//this.physics.add.collider(lightStick, this.player);

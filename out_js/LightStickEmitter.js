@@ -1,29 +1,52 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 exports.__esModule = true;
-var LightStickEmitter = /** @class */ (function (_super) {
-    __extends(LightStickEmitter, _super);
-    function LightStickEmitter(scene, x, y, texture, frame) {
-        var _this = _super.call(this, scene, x, y, texture, frame) || this;
-        scene.physics.add.sys.displayList.add(_this);
-        scene.physics.add.sys.updateList.add(_this);
-        scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.DYNAMIC_BODY);
-        return _this;
+var LightStick_1 = require("./LightStick");
+var LightStickEmitter = /** @class */ (function () {
+    function LightStickEmitter(scene, texture) {
+        this.lightSticks = [];
+        this.scene = scene;
+        this.texture = texture;
     }
     LightStickEmitter.prototype.update = function (time, delta) {
+        this.lightSticks.forEach(function (lightStick) {
+            if (!lightStick.body.blocked.down) {
+                lightStick.angle += 10;
+            }
+            else {
+                lightStick.setDragX(500);
+            }
+            lightStick.light.x = lightStick.x;
+            lightStick.light.y = lightStick.y;
+        });
+    };
+    LightStickEmitter.prototype["throw"] = function (x, y, throwAngle) {
+        var lightColor = Phaser.Math.Between(0xaaaaaa, 0xffffff);
+        var lightStick = new LightStick_1.LightStick(this.scene, x, y, this.texture);
+        lightStick.setVelocity(400 * Math.cos(throwAngle), 400 * Math.sin(throwAngle));
+        lightStick.setScale(0.4);
+        lightStick.angle = Phaser.Math.FloatBetween(0, 180);
+        lightStick.setCollideWorldBounds(true);
+        lightStick.light = this.scene.lights.addLight(lightStick.x, lightStick.y, 400);
+        lightStick.light.setIntensity(2);
+        lightStick.light.setColor(lightColor);
+        lightStick.setTint(lightColor);
+        if (this.scene.lights.lights.length > this.scene.lights.maxLights) {
+            this.scene.lights.removeLight(this.lightSticks[0].light);
+            this.lightSticks[0].destroy();
+            this.lightSticks.shift();
+        }
+        this.lightSticks.push(lightStick);
+        return lightStick;
+    };
+    LightStickEmitter.prototype.forEachCloseLight = function (x, y, minDistance, callback, context) {
+        this.lightSticks.forEach(function (lightStick) {
+            var distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y, x, y);
+            if (distance < minDistance) {
+                var angle = Phaser.Math.Angle.Between(lightStick.x, lightStick.y, x, y);
+                callback.bind(context)(lightStick, angle);
+            }
+        }, this);
     };
     return LightStickEmitter;
-}(Phaser.Physics.Arcade.Sprite));
+}());
 exports.LightStickEmitter = LightStickEmitter;

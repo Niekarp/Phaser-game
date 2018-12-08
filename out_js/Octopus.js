@@ -47,16 +47,12 @@ var Octopus = /** @class */ (function (_super) {
                 }
             }
             // run away from light sticks
-            var runned_1 = false;
-            this.lightSticks.forEach(function (lightStick) {
-                var distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y, _this.x, _this.y);
-                if (distance < _this.minLightStickDistance) {
-                    runned_1 = true;
-                    var angle = Phaser.Math.Angle.Between(lightStick.x, lightStick.y, _this.x, _this.y);
-                    _this.setWalkingAngle(angle);
-                }
+            var found_1 = false;
+            this.lightStickEmitter.forEachCloseLight(this.x, this.y, this.minLightStickDistance, function (lighstick, angle) {
+                found_1 = true;
+                _this.setWalkingAngle(angle);
             }, this);
-            if (runned_1) {
+            if (found_1) {
                 return;
             }
             // chase the player
@@ -92,8 +88,8 @@ var Octopus = /** @class */ (function (_super) {
     Octopus.prototype.setDefaultVelocity = function (v) {
         this.defaultVelocity = v;
     };
-    Octopus.prototype.setLightSticks = function (lightSticks) {
-        this.lightSticks = lightSticks;
+    Octopus.prototype.setLightStickEmitter = function (emitter) {
+        this.lightStickEmitter = emitter;
     };
     Octopus.prototype.setPlayer = function (player) {
         this.player = player;

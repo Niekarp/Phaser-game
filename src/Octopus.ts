@@ -1,4 +1,5 @@
 import { LightStickEmitter } from "./LightStickEmitter";
+import { LightStick } from "./LightStick";
 
 export class Octopus extends Phaser.Physics.Arcade.Sprite
 {
@@ -11,7 +12,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
     private released: boolean;
     private defaultVelocity: number = 10;
     private lastChangedDirectionTime: number = 0;
-    private lightSticks: Phaser.Physics.Arcade.Sprite[];
+    private lightStickEmitter: LightStickEmitter;
     private player: Phaser.Physics.Arcade.Sprite;
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
@@ -54,19 +55,13 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
             }
 
             // run away from light sticks
-            let runned = false;
-            this.lightSticks.forEach((lightStick: Phaser.Physics.Arcade.Sprite) =>
-            {
-                let distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y,
-                    this.x, this.y);
-                if(distance < this.minLightStickDistance)
-                {
-                    runned = true;
-                    let angle = Phaser.Math.Angle.Between(lightStick.x, lightStick.y, this.x, this.y);
-                    this.setWalkingAngle(angle);                    
-                }
+            let found = false;
+            this.lightStickEmitter.forEachCloseLight(this.x, this.y, this.minLightStickDistance,
+                (lighstick: LightStick, angle: number) => {
+                    found = true;
+                    this.setWalkingAngle(angle);  
             }, this);
-            if(runned)
+            if(found)
             {
                 return;
             }
@@ -116,9 +111,9 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
         this.defaultVelocity = v;
     }
 
-    public setLightSticks(lightSticks: Phaser.Physics.Arcade.Sprite[]): void
+    public setLightStickEmitter(emitter: LightStickEmitter): void
     {
-        this.lightSticks = lightSticks;
+        this.lightStickEmitter = emitter;
     }
 
     public setPlayer(player: Phaser.Physics.Arcade.Sprite): void
