@@ -5,7 +5,7 @@ exports.__esModule = true;
 var game_scene_1 = require("./scenes/game-scene");
 // Game configuration
 var gameConfig = {
-    type: Phaser.CANVAS,
+    type: Phaser.WEBGL,
     width: 800,
     height: 600,
     physics: {
@@ -14,6 +14,9 @@ var gameConfig = {
             gravity: { y: 450 },
             debug: false
         }
+    },
+    render: {
+        maxLights: 15
     },
     scene: game_scene_1.GameScene
 };
@@ -48,33 +51,50 @@ var GameScene = /** @class */ (function (_super) {
         _this.gameWorldCenterY = _this.gameWorldHeight / 2;
         _this.groundHeight = 4 * 32;
         _this.waterHeightLimit = _this.gameWorldHeight - _this.groundHeight - 100;
+        _this.lightSticks = [];
         return _this;
     }
     // Phaser scene functions
     GameScene.prototype.preload = function () {
-        this.load.image("tiles", "../assets/world_tails.png");
+        this.load.image("tiles", ["../assets/world_tails.png", "../assets/world_tails_n.png"]);
         this.load.tilemapTiledJSON("map", "../assets/game_map.json");
-        this.load.image('background_planks', '../assets/background_planks.png');
-        this.load.image('aquarium1', '../assets/aquarium_1.png');
+        this.load.image('background_planks', ['../assets/background_planks.png', '../assets/background_planks_n.png']);
+        this.load.image('aquarium1', ['../assets/aquarium_1.png', '../assets/aquarium_1_n.png']);
         this.load.image('bubbles', '../assets/bubble_small.png');
-        this.load.image('water', '../assets/water.png');
-        this.load.image('foreground_glass', '../assets/foreground_glass.png');
-        this.load.spritesheet('player', '../assets/player_xd.png', { frameWidth: 152, frameHeight: 89 });
+        this.load.image('lightstick', '../assets/lightstick.png');
+        this.load.image('water', ['../assets/water.png', '../assets/water_n.png']);
+        this.load.image('foreground_glass', ['../assets/foreground_glass.png', '../assets/foreground_glass_n.png']);
+        //this.load.spritesheet('player', ['../assets/player_xd.png', '../assets/player_xd_n.png'], { frameWidth: 152, frameHeight: 89 });
+        this.load.spritesheet({
+            key: 'player',
+            url: '../assets/player_xd.png',
+            normalMap: '../assets/player_xd_n.png',
+            frameConfig: {
+                frameWidth: 152,
+                frameHeight: 89
+            }
+        });
         this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
     };
     GameScene.prototype.create = function () {
+        // light
+        this.lights.enable().setAmbientColor(0x000000);
+        this.playerLight = this.lights.addLight(this.gameWorldCenterX, this.gameWorldCenterY, 200).setIntensity(0.5);
+        this.octopusLight = this.lights.addLight(this.gameWorldCenterX, this.gameWorldCenterY, 150).setIntensity(0.5);
         // loading game world elements
-        this.add.tileSprite(this.gameWorldCenterX, this.gameWorldCenterY, this.gameWorldWidth, this.gameWorldHeight, 'background_planks');
+        this.add.tileSprite(this.gameWorldCenterX, this.gameWorldCenterY, this.gameWorldWidth, this.gameWorldHeight, 'background_planks')
+            .setPipeline('Light2D');
         // loading game map
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
-        this.worldLayer = map.createStaticLayer("World", tileset, 0, 0);
+        this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
         this.aquariums = this.physics.add.staticGroup();
-        this.aquariums.create(80, 250 - 32, 'aquarium1');
+        this.aquariums.create(80, 250 - 32, 'aquarium1').setPipeline('Light2D');
         // loading game livings
         this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
+        //this.player.setPipeline('Light2D');
         this.octopus = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
         this.octopus.setBounce(1);
         this.octopus.setCollideWorldBounds(true);
@@ -83,7 +103,10 @@ var GameScene = /** @class */ (function (_super) {
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
         this.water.alpha = 0.5;
-        this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass').setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
+        this.water.setPipeline('Light2D');
+        this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass')
+            .setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
+        //.setPipeline('Light2D');
         // input
         this.inputKeys = {
             W: this.input.keyboard.addKey('W'),
@@ -133,8 +156,13 @@ var GameScene = /** @class */ (function (_super) {
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
         this.mainCamera.setBounds(0, 0, this.gameWorldWidth, this.gameWorldHeight);
+        // keyboard
+        this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
     };
     GameScene.prototype.update = function () {
+        // update lights
+        this.playerLight.setPosition(this.player.x, this.player.y);
+        this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
         var playerInWater = this.physics.world.overlap(this.player, this.water);
         // player movement
         if (this.inputKeys.A.isDown) {
@@ -183,6 +211,44 @@ var GameScene = /** @class */ (function (_super) {
         if (this.octopus.body.enable) {
             this.octopus.anims.play('life', true);
         }
+        // sticks
+        this.lightSticks.forEach(function (lightStick) {
+            if (!lightStick.body.blocked.down) {
+                lightStick.angle += 10;
+            }
+            else {
+                lightStick.setDragX(500);
+            }
+            lightStick.light.x = lightStick.x;
+            lightStick.light.y = lightStick.y;
+        });
+    };
+    GameScene.prototype.throwLightStick = function () {
+        var relativePlayerX = this.mainCamera.centerX;
+        var relativePlayerY = this.mainCamera.centerY;
+        relativePlayerX += this.player.x - this.mainCamera.midPoint.x;
+        relativePlayerY += this.player.y - this.mainCamera.midPoint.y;
+        var lightColor = Phaser.Math.Between(0xaaaaaa, 0xffffff);
+        var throwAngle = Phaser.Math.Angle.Between(relativePlayerX, relativePlayerY, this.input.activePointer.x, this.input.activePointer.y);
+        var lightStick = this.physics.add.sprite(this.player.x, this.player.y, 'lightstick');
+        lightStick.setVelocity(400 * Math.cos(throwAngle), 400 * Math.sin(throwAngle));
+        lightStick.setScale(0.4);
+        lightStick.angle = Phaser.Math.FloatBetween(0, 180);
+        lightStick.setCollideWorldBounds(true);
+        lightStick.light = this.lights.addLight(lightStick.x, lightStick.y, 400)
+            .setIntensity(2)
+            .setColor(lightColor);
+        lightStick.setTint(lightColor);
+        if (this.lights.lights.length > this.lights.maxLights) {
+            var light = this.lightSticks[0].light;
+            this.lights.removeLight(light);
+            this.lightSticks[0].destroy();
+            this.lightSticks.shift();
+        }
+        this.lightSticks.push(lightStick);
+        this.physics.add.collider(lightStick, this.worldLayer);
+        //this.physics.add.collider(lightStick, this.player);
+        this.physics.add.collider(lightStick, this.octopus);
     };
     return GameScene;
 }(Phaser.Scene));

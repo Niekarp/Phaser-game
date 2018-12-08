@@ -4,7 +4,7 @@ exports.__esModule = true;
 var game_scene_1 = require("./scenes/game-scene");
 // Game configuration
 var gameConfig = {
-    type: Phaser.CANVAS,
+    type: Phaser.WEBGL,
     width: 800,
     height: 600,
     physics: {
@@ -13,6 +13,9 @@ var gameConfig = {
             gravity: { y: 450 },
             debug: false
         }
+    },
+    render: {
+        maxLights: 15
     },
     scene: game_scene_1.GameScene
 };

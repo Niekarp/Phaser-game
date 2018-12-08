@@ -5,6 +5,7 @@
     },
     "files": [
         "./src/game.ts",
-        "./src/scenes/game-scene.ts"
+        "./src/scenes/game-scene.ts",
+        "./src/LightStick.ts"
     ]
 }
