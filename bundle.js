@@ -1,5 +1,134 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+exports.__esModule = true;
+var Aquarium = /** @class */ (function (_super) {
+    __extends(Aquarium, _super);
+    function Aquarium(scene, x, y, texture, frame) {
+        var _this = _super.call(this, scene, x, y, texture, frame) || this;
+        scene.physics.add.sys.displayList.add(_this);
+        scene.physics.add.sys.updateList.add(_this);
+        scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
+        return _this;
+    }
+    Aquarium.prototype.setWater = function (water) {
+        this.water = water;
+    };
+    Aquarium.prototype.setOctopus = function (octopus) {
+        this.octopus = octopus;
+    };
+    Aquarium.prototype.update = function (time, delta) {
+        _super.prototype.update.call(this, time, delta);
+        if (this.water != null && this.octopus != null) {
+            if (this.scene.physics.world.overlap(this.water, this)
+                && !this.octopus.body.enable) {
+                this.octopus.release(this.x, this.y);
+                this.disableBody(true, true);
+            }
+        }
+    };
+    return Aquarium;
+}(Phaser.Physics.Arcade.Sprite));
+exports.Aquarium = Aquarium;
+
+},{}],2:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+exports.__esModule = true;
+var Octopus = /** @class */ (function (_super) {
+    __extends(Octopus, _super);
+    function Octopus(scene, x, y, texture, frame) {
+        var _this = _super.call(this, scene, x, y, texture, frame) || this;
+        _this.growSpeedFactor = 500;
+        _this.changeDirectorPeriod = 2000;
+        _this.minLightStickDistance = 150;
+        _this.defaultVelocity = 10;
+        _this.lastChangedDirectionTime = 0;
+        scene.physics.add.sys.displayList.add(_this);
+        scene.physics.add.sys.updateList.add(_this);
+        scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.DYNAMIC_BODY);
+        _this.disableBody(true, true);
+        return _this;
+    }
+    Octopus.prototype.update = function (time, delta) {
+        _super.prototype.update.call(this, time, delta);
+        if (this.released) {
+            this.anims.play('life', true);
+            if (this.scaleX < 1.0) {
+                this.setScale(this.scaleX + delta / this.growSpeedFactor, this.scaleY + delta / this.growSpeedFactor);
+                return;
+            }
+            this.lightSticks.forEach(function (lightStick) {
+                var distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y, this.x, this.y);
+                if (distance < this.minLightStickDistance) {
+                    this.disableBody(true, true);
+                }
+            }, this);
+            if (this.body.blocked.left) {
+                this.setWalkingAngle(0 * Math.PI / 2);
+            }
+            else if (this.body.blocked.right) {
+                this.setWalkingAngle(2 * Math.PI / 2);
+            }
+            else if (this.body.blocked.up) {
+                this.setWalkingAngle(1 * Math.PI / 2);
+            }
+            else if (this.body.blocked.down) {
+                this.setWalkingAngle(3 * Math.PI / 2);
+            }
+            else if (time > this.lastChangedDirectionTime + this.changeDirectorPeriod) {
+                this.lastChangedDirectionTime = time;
+                this.setRandomWalkingAngle();
+            }
+        }
+    };
+    Octopus.prototype.release = function (x, y) {
+        this.enableBody(true, x, y, true, true);
+        this.setScale(0.1, 0.1);
+        this.released = true;
+    };
+    Octopus.prototype.setDefaultVelocity = function (v) {
+        this.defaultVelocity = v;
+    };
+    Octopus.prototype.setRandomWalkingAngle = function () {
+        this.setWalkingAngle(Phaser.Math.FloatBetween(0, 2 * Math.PI));
+    };
+    Octopus.prototype.setWalkingAngle = function (radians) {
+        this.setVelocity(this.defaultVelocity * Math.cos(radians), this.defaultVelocity * Math.sin(radians));
+    };
+    Octopus.prototype.setLightSticks = function (lightSticks) {
+        this.lightSticks = lightSticks;
+    };
+    return Octopus;
+}(Phaser.Physics.Arcade.Sprite));
+exports.Octopus = Octopus;
+
+},{}],3:[function(require,module,exports){
+"use strict";
 /// <reference path="../typescript_defs/phaser.d.ts"/>
 exports.__esModule = true;
 var game_scene_1 = require("./scenes/game-scene");
@@ -22,7 +151,7 @@ var gameConfig = {
 };
 var game = new Phaser.Game(gameConfig);
 
-},{"./scenes/game-scene":2}],2:[function(require,module,exports){
+},{"./scenes/game-scene":4}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -38,6 +167,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
+var Octopus_1 = require("../Octopus");
+var Aquarium_1 = require("../Aquarium");
 var GameScene = /** @class */ (function (_super) {
     __extends(GameScene, _super);
     function GameScene() {
@@ -88,22 +219,26 @@ var GameScene = /** @class */ (function (_super) {
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
-        this.aquariums = this.physics.add.staticGroup();
-        this.aquariums.create(80, 250 - 32, 'aquarium1').setPipeline('Light2D');
         // loading game livings
         this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
         //this.player.setPipeline('Light2D');
-        this.octopus = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
-        this.octopus.setBounce(1);
+        this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
+        this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
-        this.octopus.disableBody(true, true);
+        this.octopus.setDefaultVelocity(100);
+        this.octopus.setLightSticks(this.lightSticks);
+        this.octopus.body.allowGravity = false;
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
         this.water.alpha = 0.5;
         this.water.setPipeline('Light2D');
+        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
+        this.aquarium.setPipeline('Light2D');
+        this.aquarium.setWater(this.water);
+        this.aquarium.setOctopus(this.octopus);
         this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass')
             .setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
         //.setPipeline('Light2D');
@@ -159,7 +294,7 @@ var GameScene = /** @class */ (function (_super) {
         // keyboard
         this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
     };
-    GameScene.prototype.update = function () {
+    GameScene.prototype.update = function (time, delta) {
         // update lights
         this.playerLight.setPosition(this.player.x, this.player.y);
         this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
@@ -204,13 +339,6 @@ var GameScene = /** @class */ (function (_super) {
             this.water.setPosition(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight - (this.water.displayHeight / 2));
         }
         // aquariums release monsters :o
-        if (this.physics.world.overlap(this.water, this.aquariums) && !this.octopus.body.enable) {
-            this.octopus.enableBody(true, 80, 250 - 32 - 100, true, true);
-            this.octopus.setVelocity(50, 20);
-        }
-        if (this.octopus.body.enable) {
-            this.octopus.anims.play('life', true);
-        }
         // sticks
         this.lightSticks.forEach(function (lightStick) {
             if (!lightStick.body.blocked.down) {
@@ -222,6 +350,9 @@ var GameScene = /** @class */ (function (_super) {
             lightStick.light.x = lightStick.x;
             lightStick.light.y = lightStick.y;
         });
+        // update objects
+        this.octopus.update(time, delta);
+        this.aquarium.update(time, delta);
     };
     GameScene.prototype.throwLightStick = function () {
         var relativePlayerX = this.mainCamera.centerX;
@@ -254,4 +385,4 @@ var GameScene = /** @class */ (function (_super) {
 }(Phaser.Scene));
 exports.GameScene = GameScene;
 
-},{}]},{},[1]);
+},{"../Aquarium":1,"../Octopus":2}]},{},[3]);

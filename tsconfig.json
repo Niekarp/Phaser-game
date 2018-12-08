@@ -6,6 +6,8 @@
     "files": [
         "./src/game.ts",
         "./src/scenes/game-scene.ts",
-        "./src/LightStick.ts"
+        "./src/LightStick.ts",
+        "./src/Octopus.ts",
+        "./src/Aquarium.ts"
     ]
 }

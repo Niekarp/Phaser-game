@@ -13,6 +13,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
+var Octopus_1 = require("../Octopus");
+var Aquarium_1 = require("../Aquarium");
 var GameScene = /** @class */ (function (_super) {
     __extends(GameScene, _super);
     function GameScene() {
@@ -63,22 +65,26 @@ var GameScene = /** @class */ (function (_super) {
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
-        this.aquariums = this.physics.add.staticGroup();
-        this.aquariums.create(80, 250 - 32, 'aquarium1').setPipeline('Light2D');
         // loading game livings
         this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
         //this.player.setPipeline('Light2D');
-        this.octopus = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
-        this.octopus.setBounce(1);
+        this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
+        this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
-        this.octopus.disableBody(true, true);
+        this.octopus.setDefaultVelocity(100);
+        this.octopus.setLightSticks(this.lightSticks);
+        this.octopus.body.allowGravity = false;
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
         this.water.alpha = 0.5;
         this.water.setPipeline('Light2D');
+        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
+        this.aquarium.setPipeline('Light2D');
+        this.aquarium.setWater(this.water);
+        this.aquarium.setOctopus(this.octopus);
         this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass')
             .setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
         //.setPipeline('Light2D');
@@ -134,7 +140,7 @@ var GameScene = /** @class */ (function (_super) {
         // keyboard
         this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
     };
-    GameScene.prototype.update = function () {
+    GameScene.prototype.update = function (time, delta) {
         // update lights
         this.playerLight.setPosition(this.player.x, this.player.y);
         this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
@@ -179,13 +185,6 @@ var GameScene = /** @class */ (function (_super) {
             this.water.setPosition(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight - (this.water.displayHeight / 2));
         }
         // aquariums release monsters :o
-        if (this.physics.world.overlap(this.water, this.aquariums) && !this.octopus.body.enable) {
-            this.octopus.enableBody(true, 80, 250 - 32 - 100, true, true);
-            this.octopus.setVelocity(50, 20);
-        }
-        if (this.octopus.body.enable) {
-            this.octopus.anims.play('life', true);
-        }
         // sticks
         this.lightSticks.forEach(function (lightStick) {
             if (!lightStick.body.blocked.down) {
@@ -197,6 +196,9 @@ var GameScene = /** @class */ (function (_super) {
             lightStick.light.x = lightStick.x;
             lightStick.light.y = lightStick.y;
         });
+        // update objects
+        this.octopus.update(time, delta);
+        this.aquarium.update(time, delta);
     };
     GameScene.prototype.throwLightStick = function () {
         var relativePlayerX = this.mainCamera.centerX;

@@ -1,5 +1,7 @@
 
 import { LightStick } from '../LightStick';
+import { Octopus } from '../Octopus';
+import { Aquarium } from '../Aquarium';
 
 export class GameScene extends Phaser.Scene
 {
@@ -18,12 +20,12 @@ export class GameScene extends Phaser.Scene
 
 	// Game world elements
 	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;	
-	private aquariums: Phaser.Physics.Arcade.StaticGroup;
+	private aquarium: Aquarium;
 	private water: Phaser.Physics.Arcade.Image;
 
 	// Game livings
 	private player: Phaser.Physics.Arcade.Sprite;
-	private octopus: Phaser.Physics.Arcade.Sprite;
+	private octopus: Octopus;
 
 	// Game objects
 	private mainCamera: Phaser.Cameras.Scene2D.Camera;
@@ -35,7 +37,7 @@ export class GameScene extends Phaser.Scene
 	};
 	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
-	private lightSticks = [];
+	private lightSticks: LightStick[] = [];
 
 	constructor()
 	{
@@ -89,25 +91,29 @@ export class GameScene extends Phaser.Scene
 		const tileset = map.addTilesetImage("world_tails", "tiles");
 		this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
 	
-		this.aquariums = this.physics.add.staticGroup();
-		this.aquariums.create(80, 250 - 32, 'aquarium1').setPipeline('Light2D');
-	
 		// loading game livings
-		this.player = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
+		this.player =  this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'player');
 		this.player.setBounce(0.2);
 		this.player.setCollideWorldBounds(true);
 		//this.player.setPipeline('Light2D');
 
-		this.octopus = this.physics.add.sprite(80, 250 - 32 - 100, 'octopus');
-		this.octopus.setBounce(1);
+		this.octopus = new Octopus(this, 0, 0, 'octopus');
+		this.octopus.setBounce(0);
 		this.octopus.setCollideWorldBounds(true);
-		this.octopus.disableBody(true, true);
-	
+		this.octopus.setDefaultVelocity(100);
+		this.octopus.setLightSticks(this.lightSticks);
+		(<any>this.octopus.body.allowGravity) = false;
+		
 		// loading game world elements
 		this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
 		this.water.setDisplaySize(this.gameWorldWidth, 0);
 		this.water.alpha = 0.5;
 		this.water.setPipeline('Light2D');
+
+		this.aquarium = new Aquarium(this, 1030, 800, 'aquarium1');
+		this.aquarium.setPipeline('Light2D');
+		this.aquarium.setWater(this.water);
+		this.aquarium.setOctopus(this.octopus);	
 	
 		this.add.image(this.gameWorldCenterX, this.gameWorldCenterY, 'foreground_glass')
 				.setDisplaySize(this.gameWorldWidth, this.gameWorldHeight);
@@ -174,7 +180,7 @@ export class GameScene extends Phaser.Scene
 		this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
 	}
 
-	update(): void
+	update(time: number, delta: number): void
 	{
 		// update lights
 		this.playerLight.setPosition(this.player.x, this.player.y);
@@ -239,15 +245,7 @@ export class GameScene extends Phaser.Scene
 		}
 	
 		// aquariums release monsters :o
-		if (this.physics.world.overlap(<any>this.water, <any>this.aquariums) && !this.octopus.body.enable)
-		{
-			this.octopus.enableBody(true, 80, 250 - 32 - 100, true, true);
-			this.octopus.setVelocity(50, 20);
-		}
-		if (this.octopus.body.enable)
-		{
-			this.octopus.anims.play('life', true);
-		}
+		
 
 		// sticks
 		this.lightSticks.forEach(function(lightStick : Phaser.Physics.Arcade.Sprite) {
@@ -262,6 +260,10 @@ export class GameScene extends Phaser.Scene
 			(<Phaser.GameObjects.Light>(<any>lightStick).light).x = lightStick.x;
 			(<Phaser.GameObjects.Light>(<any>lightStick).light).y = lightStick.y;
 		});
+
+		// update objects
+		this.octopus.update(time, delta);
+		this.aquarium.update(time, delta);
 	}
 
 	throwLightStick(): void
