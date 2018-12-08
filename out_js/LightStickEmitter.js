@@ -41,6 +41,7 @@ var LightStickEmitter = /** @class */ (function () {
         }
         if (this.scene.lights.lights.length > this.scene.lights.maxLights) {
             this.scene.lights.removeLight(this.lightSticks[0].light);
+            this.lightSticks[0].bubbleEmitter.stop();
             this.lightSticks[0].destroy();
             this.lightSticks.shift();
         }
