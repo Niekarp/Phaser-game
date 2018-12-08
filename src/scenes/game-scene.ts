@@ -1,5 +1,5 @@
 
-import { LightStick } from '../LightStick';
+import { LightStickEmitter } from '../LightStickEmitter';
 import { Octopus } from '../Octopus';
 import { Aquarium } from '../Aquarium';
 
@@ -37,7 +37,7 @@ export class GameScene extends Phaser.Scene
 	};
 	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
-	private lightSticks: LightStick[] = [];
+	private lightSticks: Phaser.Physics.Arcade.Sprite[] = [];
 
 	constructor()
 	{
@@ -100,9 +100,11 @@ export class GameScene extends Phaser.Scene
 		this.octopus = new Octopus(this, 0, 0, 'octopus');
 		this.octopus.setBounce(0);
 		this.octopus.setCollideWorldBounds(true);
-		this.octopus.setDefaultVelocity(100);
+		this.octopus.setDefaultVelocity(300);
 		this.octopus.setLightSticks(this.lightSticks);
+		this.octopus.setPlayer(this.player);
 		(<any>this.octopus.body.allowGravity) = false;
+		this.octopus.onPlayerCaught(() => this.playerCaught());
 		
 		// loading game world elements
 		this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
@@ -169,7 +171,7 @@ export class GameScene extends Phaser.Scene
 		this.worldLayer.setCollisionByProperty({ collides: true });
 		this.physics.add.collider(this.player, this.worldLayer);
 		this.physics.add.collider(this.octopus, this.worldLayer);
-		this.physics.add.collider(this.octopus, this.player);
+		//this.physics.add.collider(this.octopus, this.player);
 
 		// camera
 		this.mainCamera = this.cameras.main;
@@ -248,7 +250,7 @@ export class GameScene extends Phaser.Scene
 		
 
 		// sticks
-		this.lightSticks.forEach(function(lightStick : Phaser.Physics.Arcade.Sprite) {
+		this.lightSticks.forEach((lightStick : Phaser.Physics.Arcade.Sprite) => {
 			if(!lightStick.body.blocked.down) 
 			{
 				lightStick.angle += 10;				
@@ -303,5 +305,12 @@ export class GameScene extends Phaser.Scene
 		this.physics.add.collider(lightStick, this.worldLayer);
 		//this.physics.add.collider(lightStick, this.player);
 		this.physics.add.collider(lightStick, this.octopus);
+	}
+
+	playerCaught(): void
+	{
+		console.log("Fuck!");
+		//this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
+		this.player.disableBody(true, true);
 	}
 }

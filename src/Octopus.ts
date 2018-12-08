@@ -1,15 +1,18 @@
-import { LightStick } from "./LightStick";
+import { LightStickEmitter } from "./LightStickEmitter";
 
 export class Octopus extends Phaser.Physics.Arcade.Sprite
 {
     public growSpeedFactor: number = 500;
     public changeDirectorPeriod: number = 2000;
-    public minLightStickDistance: number = 150;
+    public minLightStickDistance: number = 250;
+    public minPlayerChaseDistance: number = 500;
+    public onPlayerCaughtCallback: ()=>void;
 
     private released: boolean;
     private defaultVelocity: number = 10;
     private lastChangedDirectionTime: number = 0;
-    private lightSticks: LightStick[];
+    private lightSticks: Phaser.Physics.Arcade.Sprite[];
+    private player: Phaser.Physics.Arcade.Sprite;
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
     {
@@ -36,17 +39,47 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
 
                 return;
             }
+            
+            let playerDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y,
+                this.x, this.y);
 
-            this.lightSticks.forEach(function(lightStick: LightStick)
+            // try catch player
+            const playerCaught: boolean = this.scene.physics.world.overlap(<any>this.player, <any>this);
+            if(playerCaught)
+            {
+                if(this.onPlayerCaughtCallback)
+                {
+                    this.onPlayerCaughtCallback();
+                }
+            }
+
+            // run away from light sticks
+            let runned = false;
+            this.lightSticks.forEach((lightStick: Phaser.Physics.Arcade.Sprite) =>
             {
                 let distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y,
                     this.x, this.y);
                 if(distance < this.minLightStickDistance)
                 {
-                    this.disableBody(true, true);
+                    runned = true;
+                    let angle = Phaser.Math.Angle.Between(lightStick.x, lightStick.y, this.x, this.y);
+                    this.setWalkingAngle(angle);                    
                 }
             }, this);
+            if(runned)
+            {
+                return;
+            }
+            
+            // chase the player
+            if(playerDistance < this.minPlayerChaseDistance)
+            {
+                let angle = Phaser.Math.Angle.Between(this.x, this.y, this.player.x, this.player.y);
+                this.setWalkingAngle(angle)
+                return;
+            }
 
+            // bounce from obstacles
             if(this.body.blocked.left)
             {
                 this.setWalkingAngle(0 * Math.PI / 2);
@@ -66,7 +99,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
             else if(time > this.lastChangedDirectionTime + this.changeDirectorPeriod)
             {
                 this.lastChangedDirectionTime = time;
-                this.setRandomWalkingAngle();            
+                this.setRandomWalkingAngle(); 
             }
         }
     }
@@ -83,6 +116,21 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
         this.defaultVelocity = v;
     }
 
+    public setLightSticks(lightSticks: Phaser.Physics.Arcade.Sprite[]): void
+    {
+        this.lightSticks = lightSticks;
+    }
+
+    public setPlayer(player: Phaser.Physics.Arcade.Sprite): void
+    {
+        this.player = player;
+    }
+
+    public onPlayerCaught(callback: ()=>void)
+    {
+        this.onPlayerCaughtCallback = callback;
+    }
+
     private setRandomWalkingAngle(): void
     {
         this.setWalkingAngle(Phaser.Math.FloatBetween(0, 2 * Math.PI));
@@ -92,11 +140,6 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
     {
         this.setVelocity(this.defaultVelocity * Math.cos(radians),
                 this.defaultVelocity * Math.sin(radians));
-    }
-
-    public setLightSticks(lightSticks: LightStick[]): void
-    {
-        this.lightSticks = lightSticks;
     }
 
 }

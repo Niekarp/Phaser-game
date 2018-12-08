@@ -65,7 +65,8 @@ var Octopus = /** @class */ (function (_super) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
         _this.growSpeedFactor = 500;
         _this.changeDirectorPeriod = 2000;
-        _this.minLightStickDistance = 150;
+        _this.minLightStickDistance = 250;
+        _this.minPlayerChaseDistance = 500;
         _this.defaultVelocity = 10;
         _this.lastChangedDirectionTime = 0;
         scene.physics.add.sys.displayList.add(_this);
@@ -75,6 +76,7 @@ var Octopus = /** @class */ (function (_super) {
         return _this;
     }
     Octopus.prototype.update = function (time, delta) {
+        var _this = this;
         _super.prototype.update.call(this, time, delta);
         if (this.released) {
             this.anims.play('life', true);
@@ -82,12 +84,34 @@ var Octopus = /** @class */ (function (_super) {
                 this.setScale(this.scaleX + delta / this.growSpeedFactor, this.scaleY + delta / this.growSpeedFactor);
                 return;
             }
+            var playerDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.x, this.y);
+            // try catch player
+            var playerCaught = this.scene.physics.world.overlap(this.player, this);
+            if (playerCaught) {
+                if (this.onPlayerCaughtCallback) {
+                    this.onPlayerCaughtCallback();
+                }
+            }
+            // run away from light sticks
+            var runned_1 = false;
             this.lightSticks.forEach(function (lightStick) {
-                var distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y, this.x, this.y);
-                if (distance < this.minLightStickDistance) {
-                    this.disableBody(true, true);
+                var distance = Phaser.Math.Distance.Between(lightStick.x, lightStick.y, _this.x, _this.y);
+                if (distance < _this.minLightStickDistance) {
+                    runned_1 = true;
+                    var angle = Phaser.Math.Angle.Between(lightStick.x, lightStick.y, _this.x, _this.y);
+                    _this.setWalkingAngle(angle);
                 }
             }, this);
+            if (runned_1) {
+                return;
+            }
+            // chase the player
+            if (playerDistance < this.minPlayerChaseDistance) {
+                var angle = Phaser.Math.Angle.Between(this.x, this.y, this.player.x, this.player.y);
+                this.setWalkingAngle(angle);
+                return;
+            }
+            // bounce from obstacles
             if (this.body.blocked.left) {
                 this.setWalkingAngle(0 * Math.PI / 2);
             }
@@ -114,14 +138,20 @@ var Octopus = /** @class */ (function (_super) {
     Octopus.prototype.setDefaultVelocity = function (v) {
         this.defaultVelocity = v;
     };
+    Octopus.prototype.setLightSticks = function (lightSticks) {
+        this.lightSticks = lightSticks;
+    };
+    Octopus.prototype.setPlayer = function (player) {
+        this.player = player;
+    };
+    Octopus.prototype.onPlayerCaught = function (callback) {
+        this.onPlayerCaughtCallback = callback;
+    };
     Octopus.prototype.setRandomWalkingAngle = function () {
         this.setWalkingAngle(Phaser.Math.FloatBetween(0, 2 * Math.PI));
     };
     Octopus.prototype.setWalkingAngle = function (radians) {
         this.setVelocity(this.defaultVelocity * Math.cos(radians), this.defaultVelocity * Math.sin(radians));
-    };
-    Octopus.prototype.setLightSticks = function (lightSticks) {
-        this.lightSticks = lightSticks;
     };
     return Octopus;
 }(Phaser.Physics.Arcade.Sprite));
@@ -208,6 +238,7 @@ var GameScene = /** @class */ (function (_super) {
         this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
     };
     GameScene.prototype.create = function () {
+        var _this = this;
         // light
         this.lights.enable().setAmbientColor(0x000000);
         this.playerLight = this.lights.addLight(this.gameWorldCenterX, this.gameWorldCenterY, 200).setIntensity(0.5);
@@ -227,9 +258,11 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
         this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
-        this.octopus.setDefaultVelocity(100);
+        this.octopus.setDefaultVelocity(300);
         this.octopus.setLightSticks(this.lightSticks);
+        this.octopus.setPlayer(this.player);
         this.octopus.body.allowGravity = false;
+        this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
@@ -286,7 +319,7 @@ var GameScene = /** @class */ (function (_super) {
         this.worldLayer.setCollisionByProperty({ collides: true });
         this.physics.add.collider(this.player, this.worldLayer);
         this.physics.add.collider(this.octopus, this.worldLayer);
-        this.physics.add.collider(this.octopus, this.player);
+        //this.physics.add.collider(this.octopus, this.player);
         // camera
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
@@ -380,6 +413,11 @@ var GameScene = /** @class */ (function (_super) {
         this.physics.add.collider(lightStick, this.worldLayer);
         //this.physics.add.collider(lightStick, this.player);
         this.physics.add.collider(lightStick, this.octopus);
+    };
+    GameScene.prototype.playerCaught = function () {
+        console.log("Fuck!");
+        //this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
+        this.player.disableBody(true, true);
     };
     return GameScene;
 }(Phaser.Scene));

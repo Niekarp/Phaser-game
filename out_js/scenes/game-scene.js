@@ -54,6 +54,7 @@ var GameScene = /** @class */ (function (_super) {
         this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
     };
     GameScene.prototype.create = function () {
+        var _this = this;
         // light
         this.lights.enable().setAmbientColor(0x000000);
         this.playerLight = this.lights.addLight(this.gameWorldCenterX, this.gameWorldCenterY, 200).setIntensity(0.5);
@@ -73,9 +74,11 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
         this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
-        this.octopus.setDefaultVelocity(100);
+        this.octopus.setDefaultVelocity(300);
         this.octopus.setLightSticks(this.lightSticks);
+        this.octopus.setPlayer(this.player);
         this.octopus.body.allowGravity = false;
+        this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
@@ -132,7 +135,7 @@ var GameScene = /** @class */ (function (_super) {
         this.worldLayer.setCollisionByProperty({ collides: true });
         this.physics.add.collider(this.player, this.worldLayer);
         this.physics.add.collider(this.octopus, this.worldLayer);
-        this.physics.add.collider(this.octopus, this.player);
+        //this.physics.add.collider(this.octopus, this.player);
         // camera
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
@@ -226,6 +229,11 @@ var GameScene = /** @class */ (function (_super) {
         this.physics.add.collider(lightStick, this.worldLayer);
         //this.physics.add.collider(lightStick, this.player);
         this.physics.add.collider(lightStick, this.octopus);
+    };
+    GameScene.prototype.playerCaught = function () {
+        console.log("Fuck!");
+        //this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
+        this.player.disableBody(true, true);
     };
     return GameScene;
 }(Phaser.Scene));
