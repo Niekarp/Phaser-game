@@ -225,6 +225,14 @@ var GameScene = /** @class */ (function (_super) {
         this.load.image('lightstick', '../assets/lightstick.png');
         this.load.image('water', ['../assets/water.png', '../assets/water_n.png']);
         this.load.image('foreground_glass', ['../assets/foreground_glass.png', '../assets/foreground_glass_n.png']);
+        this.load.spritesheet({
+            key: 'hydrant',
+            url: '../assets/hydrant.png',
+            frameConfig: {
+                frameWidth: 62,
+                frameHeight: 101
+            }
+        });
         //this.load.spritesheet('player', ['../assets/player_xd.png', '../assets/player_xd_n.png'], { frameWidth: 152, frameHeight: 89 });
         this.load.spritesheet({
             key: 'player',
@@ -262,7 +270,12 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.setLightSticks(this.lightSticks);
         this.octopus.setPlayer(this.player);
         this.octopus.body.allowGravity = false;
+<<<<<<< HEAD
         this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
+=======
+        this.hydrants = this.physics.add.sprite(this.gameWorldCenterX, this.gameWorldCenterY, 'hydrant');
+        this.hydrants.setCollideWorldBounds(true);
+>>>>>>> 7524fead78d10c56c634a581e2b82bd5f4a10419
         // loading game world elements
         this.water = this.physics.add.staticImage(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight, 'water');
         this.water.setDisplaySize(this.gameWorldWidth, 0);
@@ -304,6 +317,11 @@ var GameScene = /** @class */ (function (_super) {
             frameRate: 10,
             repeat: -1
         });
+        this.anims.create({
+            key: 'hydrant_turn',
+            frames: [{ key: 'hydrant', frame: 1 }],
+            frameRate: 10
+        });
         // animations -> particles
         var bubblesEmitterManager = this.add.particles('bubbles');
         this.bubblesEmitter = bubblesEmitterManager.createEmitter({
@@ -319,7 +337,12 @@ var GameScene = /** @class */ (function (_super) {
         this.worldLayer.setCollisionByProperty({ collides: true });
         this.physics.add.collider(this.player, this.worldLayer);
         this.physics.add.collider(this.octopus, this.worldLayer);
+<<<<<<< HEAD
         //this.physics.add.collider(this.octopus, this.player);
+=======
+        this.physics.add.collider(this.octopus, this.player);
+        this.physics.add.collider(this.worldLayer, this.hydrants);
+>>>>>>> 7524fead78d10c56c634a581e2b82bd5f4a10419
         // camera
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
@@ -371,7 +394,8 @@ var GameScene = /** @class */ (function (_super) {
             this.water.setDisplaySize(this.water.displayWidth, this.water.displayHeight + 1).refreshBody();
             this.water.setPosition(this.gameWorldCenterX, this.gameWorldHeight - this.groundHeight - (this.water.displayHeight / 2));
         }
-        // aquariums release monsters :o
+        // hydrants
+        this.hydrants.anims.play('hydrant_turn');
         // sticks
         this.lightSticks.forEach(function (lightStick) {
             if (!lightStick.body.blocked.down) {
