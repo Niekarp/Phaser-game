@@ -18,7 +18,6 @@ export class Water extends Phaser.Physics.Arcade.Image
 		super(scene, x, y, texture, frame);
 
 		scene.physics.add.sys.displayList.add(this);
-        scene.physics.add.sys.updateList.add(this);
 		scene.physics.add.world.enableBody(this, Phaser.Physics.Arcade.STATIC_BODY);
 	}
 

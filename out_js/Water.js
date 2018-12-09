@@ -24,7 +24,6 @@ var Water = /** @class */ (function (_super) {
     function Water(scene, x, y, texture, frame) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
         scene.physics.add.sys.displayList.add(_this);
-        scene.physics.add.sys.updateList.add(_this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
         return _this;
     }
