@@ -28,6 +28,7 @@ export class Water extends Phaser.Physics.Arcade.Image
 
 		// water level change
 		// console.log(this.displayHeight + '<' + this.waterHeightLimit + ';' + (this.waterMovementDirection == WaterMovementDirection.Up));
+		// console.log('x: ' + this.x, 'y: ' + this.y);
 		if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up)
 		{
 			this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
@@ -36,7 +37,7 @@ export class Water extends Phaser.Physics.Arcade.Image
 		{
 			this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
 		}
-		this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.groundHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
+		this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.worldHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
 	}
 
 	public setWaterHeightLimit(newLimit: number): void

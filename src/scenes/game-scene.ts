@@ -172,7 +172,7 @@ export class GameScene extends Phaser.Scene
 		this.aquarium.setOctopus(this.octopus);	
 
 		// particles --> droplets
-		/* this.droplets = this.physics.add.group();
+		this.droplets = this.physics.add.group();
 		for (var i = 0; i < 500; i++)
 		{
 			let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
@@ -189,7 +189,7 @@ export class GameScene extends Phaser.Scene
 			// Add a force that slows down the droplet over time
 			droplet.setDamping(false); //).body.damping = 0.3;
 
-			droplet.setMass(3);
+			droplet.setMass(2);
 			droplet.setBounce(1);
 			droplet.setAlpha(0.3);
 			// droplet.setGravity(0, 1);
@@ -204,7 +204,7 @@ export class GameScene extends Phaser.Scene
 			// droplet.setPipeline('Blur');
 
 			// (<any>droplet.body.allowGravity) = false;
-		} */
+		}
 		/* var blurShader = this.game.add.filter('Blur');
 		blurShader.blur = 32;
 		var threshShader = this.game.add.filter('Threshold');
@@ -271,21 +271,21 @@ export class GameScene extends Phaser.Scene
 
 		// droplets
 		// console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));
-		/* this.droplets.getChildren().forEach((d, i, arr) => {
+		this.droplets.getChildren().forEach((d, i, arr) => {
 			// console.log('droplet: ' + (d as Phaser.Physics.Arcade.Sprite).y);
 			let droplet = <Phaser.Physics.Arcade.Sprite>d;
 			if ((d as Phaser.Physics.Arcade.Sprite).y > this.water.y - (this.water.displayHeight / 2))
-			{ */
+			{ 
 				// console.log('setVelocity');
-				/* this.physics.accelerateTo(d, (d as Phaser.Physics.Arcade.Sprite).x, this.water.y - (this.water.displayHeight / 2), 450, 500, 500); */
+				// this.physics.accelerateTo(d, (d as Phaser.Physics.Arcade.Sprite).x, this.water.y - (this.water.displayHeight / 2), 450, 500, 500);
 				// (d as Phaser.Physics.Arcade.Sprite).setBlendMode(3);
-				//(d as Phaser.Physics.Arcade.Sprite).setVelocityY(-100);
-			//}
+				droplet.setVelocityY(-100);
+			}
 			/* else
 			{
 				(d as Phaser.Physics.Arcade.Sprite).setVelocityY(0);
 			} */
-			/* let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y,
+			let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y,
                 droplet.x, droplet.y);
 			if (dist < 100)
 			{
@@ -298,8 +298,14 @@ export class GameScene extends Phaser.Scene
 					droplet.setVelocityX(-50);
 				}
 			}
-		}); */
-		/* if (this.player.y <  this.water.y - (this.water.displayHeight / 2))
+			else if (dist > 500)
+			{
+				let newX = Phaser.Math.Between(this.player.x - this.mainCamera.width / 2, this.player.x + this.mainCamera.width / 2, );
+
+				droplet.setPosition(newX, droplet.y);
+			}
+		});
+		if (this.player.y <  this.water.y - (this.water.displayHeight / 2))
 		{
 			// this.playerDropletsCollider.destroy();
 			this.playerDropletsCollider.active = false;
@@ -308,7 +314,7 @@ export class GameScene extends Phaser.Scene
 		{
 			this.playerDropletsCollider.active = true;
 			// this.playerDropletsCollider = this.physics.add.collider(this.player, this.droplets);
-		} */
+		}
 	
 		// hydrants
 		// this.hydrants.anims.play('hydrant_turn');		

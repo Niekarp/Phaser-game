@@ -383,13 +383,14 @@ var Water = /** @class */ (function (_super) {
         _super.prototype.update.call(this, time, this.data);
         // water level change
         // console.log(this.displayHeight + '<' + this.waterHeightLimit + ';' + (this.waterMovementDirection == WaterMovementDirection.Up));
+        console.log('x: ' + this.x, 'y: ' + this.y);
         if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up) {
             this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
         }
         else if (this.displayHeight > 0 && this.waterMovementDirection == WaterMovementDirection.Down) {
             this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
         }
-        this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.groundHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
+        this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.worldHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
     };
     Water.prototype.setWaterHeightLimit = function (newLimit) {
         this.waterHeightLimit = newLimit;
@@ -521,10 +522,10 @@ var GameScene = /** @class */ (function (_super) {
         this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
         this.player = new Player_1.Player(this, 0, 0, 'player');
         this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
+        this.water = new Water_1.Water(this, 0, 0, 'water');
         this.add.image(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'foreground_glass')
             .setDisplaySize(this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
         //.setPipeline('Light2D');
-        this.water = new Water_1.Water(this, 0, 0, 'water');
         // input
         this.inputKeys.addAllKeys();
         // light
@@ -575,24 +576,18 @@ var GameScene = /** @class */ (function (_super) {
         this.aquarium.setWater(this.water);
         this.aquarium.setOctopus(this.octopus);
         // particles --> droplets
-        /* this.droplets = this.physics.add.group();
-        for (var i = 0; i < 500; i++)
-        {
-            let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
-            let randomY: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldHeight);
-
-            let droplet: Phaser.Physics.Arcade.Sprite  = this.droplets.create(randomX, this.water.y, 'droplet');
-            
+        this.droplets = this.physics.add.group();
+        for (var i = 0; i < 500; i++) {
+            var randomX = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
+            var randomY = Phaser.Math.Between(0, this.gameWorldDimensions.worldHeight);
+            var droplet = this.droplets.create(randomX, this.water.y, 'droplet');
             // let droplet = this.physics.add.sprite(randomX, randomY, 'droplet');
-    
             // Enable physics for the droplet
             // this.game.physics.p2.enable(droplet);
             droplet.setCollideWorldBounds(true);
-    
             // Add a force that slows down the droplet over time
             droplet.setDamping(false); //).body.damping = 0.3;
-
-            droplet.setMass(3);
+            droplet.setMass(2);
             droplet.setBounce(1);
             droplet.setAlpha(0.3);
             // droplet.setGravity(0, 1);
@@ -600,14 +595,11 @@ var GameScene = /** @class */ (function (_super) {
             // This makes the collision body smaller so that the droplets can get
             // really up close and goopy
             droplet.setCircle(droplet.width * 0.3); //.body.setCircle(droplet.width * 0.3);
-
             droplet.setPipeline('Light2D');
-    
             // Add the droplet to the fluid group
             // droplet.setPipeline('Blur');
-
             // (<any>droplet.body.allowGravity) = false;
-        } */
+        }
         /* var blurShader = this.game.add.filter('Blur');
         blurShader.blur = 32;
         var threshShader = this.game.add.filter('Threshold');
@@ -662,46 +654,44 @@ var GameScene = /** @class */ (function (_super) {
         // update lights
         /* this.playerLight.setPosition(this.player.x, this.player.y);
         this.octopusLight.setPosition(this.octopus.x, this.octopus.y); */
+        var _this = this;
         // droplets
         // console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));
-        /* this.droplets.getChildren().forEach((d, i, arr) => {
+        this.droplets.getChildren().forEach(function (d, i, arr) {
             // console.log('droplet: ' + (d as Phaser.Physics.Arcade.Sprite).y);
-            let droplet = <Phaser.Physics.Arcade.Sprite>d;
-            if ((d as Phaser.Physics.Arcade.Sprite).y > this.water.y - (this.water.displayHeight / 2))
-            { */
-        // console.log('setVelocity');
-        /* this.physics.accelerateTo(d, (d as Phaser.Physics.Arcade.Sprite).x, this.water.y - (this.water.displayHeight / 2), 450, 500, 500); */
-        // (d as Phaser.Physics.Arcade.Sprite).setBlendMode(3);
-        //(d as Phaser.Physics.Arcade.Sprite).setVelocityY(-100);
-        //}
-        /* else
-        {
-            (d as Phaser.Physics.Arcade.Sprite).setVelocityY(0);
-        } */
-        /* let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y,
-            droplet.x, droplet.y);
-        if (dist < 100)
-        {
-            if (droplet.x > this.player.x)
-            {
-                droplet.setVelocityX(50);
+            var droplet = d;
+            if (d.y > _this.water.y - (_this.water.displayHeight / 2)) {
+                // console.log('setVelocity');
+                // this.physics.accelerateTo(d, (d as Phaser.Physics.Arcade.Sprite).x, this.water.y - (this.water.displayHeight / 2), 450, 500, 500);
+                // (d as Phaser.Physics.Arcade.Sprite).setBlendMode(3);
+                droplet.setVelocityY(-100);
             }
-            else
+            /* else
             {
-                droplet.setVelocityX(-50);
+                (d as Phaser.Physics.Arcade.Sprite).setVelocityY(0);
+            } */
+            var dist = Phaser.Math.Distance.Between(_this.player.x, _this.player.y, droplet.x, droplet.y);
+            if (dist < 100) {
+                if (droplet.x > _this.player.x) {
+                    droplet.setVelocityX(50);
+                }
+                else {
+                    droplet.setVelocityX(-50);
+                }
             }
-        }
-    }); */
-        /* if (this.player.y <  this.water.y - (this.water.displayHeight / 2))
-        {
+            else if (dist > 500) {
+                var newX = Phaser.Math.Between(_this.player.x - _this.mainCamera.width / 2, _this.player.x + _this.mainCamera.width / 2);
+                droplet.setPosition(newX, droplet.y);
+            }
+        });
+        if (this.player.y < this.water.y - (this.water.displayHeight / 2)) {
             // this.playerDropletsCollider.destroy();
             this.playerDropletsCollider.active = false;
         }
-        else
-        {
+        else {
             this.playerDropletsCollider.active = true;
             // this.playerDropletsCollider = this.physics.add.collider(this.player, this.droplets);
-        } */
+        }
         // hydrants
         // this.hydrants.anims.play('hydrant_turn');		
         // update objects
