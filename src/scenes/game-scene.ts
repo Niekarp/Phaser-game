@@ -266,8 +266,8 @@ export class GameScene extends Phaser.Scene
 	update(time: number, delta: number): void
 	{
 		// update lights
-		/* this.playerLight.setPosition(this.player.x, this.player.y);
-		this.octopusLight.setPosition(this.octopus.x, this.octopus.y); */
+		this.playerLight.setPosition(this.player.x, this.player.y);
+		this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
 
 		// droplets
 		// console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));

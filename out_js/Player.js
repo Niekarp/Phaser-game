@@ -25,7 +25,7 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.scene.physics.world.overlap(this, this.water);
-        console.log(playerInWater);
+        // console.log(playerInWater);
         // player movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {

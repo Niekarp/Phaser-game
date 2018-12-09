@@ -30,15 +30,13 @@ var Aquarium = /** @class */ (function (_super) {
     };
     Aquarium.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
-        /*  if(this.water != null && this.octopus != null)
-         {
-             if (this.scene.physics.world.overlap(<any>this.water, <any>this)
-                     && !this.octopus.body.enable)
-             {
-                 this.octopus.release(this.x, this.y);
-                 this.disableBody(true, true);
-             }
-         }       */
+        if (this.water != null && this.octopus != null) {
+            if (this.scene.physics.world.overlap(this.water, this)
+                && !this.octopus.body.enable) {
+                this.octopus.release(this.x, this.y);
+                this.disableBody(true, true);
+            }
+        }
     };
     return Aquarium;
 }(Phaser.Physics.Arcade.Sprite));

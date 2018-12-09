@@ -32,7 +32,7 @@ var Water = /** @class */ (function (_super) {
         _super.prototype.update.call(this, time, this.data);
         // water level change
         // console.log(this.displayHeight + '<' + this.waterHeightLimit + ';' + (this.waterMovementDirection == WaterMovementDirection.Up));
-        console.log('x: ' + this.x, 'y: ' + this.y);
+        // console.log('x: ' + this.x, 'y: ' + this.y);
         if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up) {
             this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
         }

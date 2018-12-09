@@ -209,10 +209,10 @@ var GameScene = /** @class */ (function (_super) {
         this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
     };
     GameScene.prototype.update = function (time, delta) {
-        // update lights
-        /* this.playerLight.setPosition(this.player.x, this.player.y);
-        this.octopusLight.setPosition(this.octopus.x, this.octopus.y); */
         var _this = this;
+        // update lights
+        this.playerLight.setPosition(this.player.x, this.player.y);
+        this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
         // droplets
         // console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));
         this.droplets.getChildren().forEach(function (d, i, arr) {

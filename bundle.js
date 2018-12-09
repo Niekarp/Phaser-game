@@ -31,15 +31,13 @@ var Aquarium = /** @class */ (function (_super) {
     };
     Aquarium.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
-        /*  if(this.water != null && this.octopus != null)
-         {
-             if (this.scene.physics.world.overlap(<any>this.water, <any>this)
-                     && !this.octopus.body.enable)
-             {
-                 this.octopus.release(this.x, this.y);
-                 this.disableBody(true, true);
-             }
-         }       */
+        if (this.water != null && this.octopus != null) {
+            if (this.scene.physics.world.overlap(this.water, this)
+                && !this.octopus.body.enable) {
+                this.octopus.release(this.x, this.y);
+                this.disableBody(true, true);
+            }
+        }
     };
     return Aquarium;
 }(Phaser.Physics.Arcade.Sprite));
@@ -296,7 +294,7 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.scene.physics.world.overlap(this, this.water);
-        console.log(playerInWater);
+        // console.log(playerInWater);
         // player movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
@@ -383,7 +381,7 @@ var Water = /** @class */ (function (_super) {
         _super.prototype.update.call(this, time, this.data);
         // water level change
         // console.log(this.displayHeight + '<' + this.waterHeightLimit + ';' + (this.waterMovementDirection == WaterMovementDirection.Up));
-        console.log('x: ' + this.x, 'y: ' + this.y);
+        // console.log('x: ' + this.x, 'y: ' + this.y);
         if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up) {
             this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
         }
@@ -651,10 +649,10 @@ var GameScene = /** @class */ (function (_super) {
         this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
     };
     GameScene.prototype.update = function (time, delta) {
-        // update lights
-        /* this.playerLight.setPosition(this.player.x, this.player.y);
-        this.octopusLight.setPosition(this.octopus.x, this.octopus.y); */
         var _this = this;
+        // update lights
+        this.playerLight.setPosition(this.player.x, this.player.y);
+        this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
         // droplets
         // console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));
         this.droplets.getChildren().forEach(function (d, i, arr) {

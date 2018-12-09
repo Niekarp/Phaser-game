@@ -28,7 +28,7 @@ export class Aquarium extends Phaser.Physics.Arcade.Sprite
     {
         super.update(time, delta);
 
-       /*  if(this.water != null && this.octopus != null)
+        if(this.water != null && this.octopus != null)
         {
             if (this.scene.physics.world.overlap(<any>this.water, <any>this) 
                     && !this.octopus.body.enable)
@@ -36,6 +36,6 @@ export class Aquarium extends Phaser.Physics.Arcade.Sprite
                 this.octopus.release(this.x, this.y);
                 this.disableBody(true, true);
             }
-        }       */ 
+        }
     }
 }
