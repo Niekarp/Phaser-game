@@ -24,12 +24,14 @@ var Water = /** @class */ (function (_super) {
     function Water(scene, x, y, texture, frame) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
         scene.physics.add.sys.displayList.add(_this);
+        // scene.physics.add.sys.updateList.add(this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
         return _this;
     }
     Water.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, this.data);
         // water level change
+        // console.log(this.displayHeight + '<' + this.waterHeightLimit + ';' + (this.waterMovementDirection == WaterMovementDirection.Up));
         if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up) {
             this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
         }

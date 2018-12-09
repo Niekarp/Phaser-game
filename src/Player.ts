@@ -20,6 +20,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 		super.update(time, delta);
 
 		const playerInWater: boolean = this.scene.physics.world.overlap(<any>this, <any>this.water);
+		console.log(playerInWater);
 
 		// player movement
 		if (this.inputKeys.A.isDown)
@@ -33,7 +34,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 				this.setVelocityX(-160);
 			}
 	
-			this.anims.play('left', true);
+			this.scene.anims.play('left', this);
 		}
 		else if (this.inputKeys.D.isDown)
 		{

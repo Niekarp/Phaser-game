@@ -18,6 +18,7 @@ export class Water extends Phaser.Physics.Arcade.Image
 		super(scene, x, y, texture, frame);
 
 		scene.physics.add.sys.displayList.add(this);
+		// scene.physics.add.sys.updateList.add(this);
 		scene.physics.add.world.enableBody(this, Phaser.Physics.Arcade.STATIC_BODY);
 	}
 
@@ -26,6 +27,7 @@ export class Water extends Phaser.Physics.Arcade.Image
 		super.update(time, this.data);
 
 		// water level change
+		// console.log(this.displayHeight + '<' + this.waterHeightLimit + ';' + (this.waterMovementDirection == WaterMovementDirection.Up));
 		if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up)
 		{
 			this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();

@@ -82,29 +82,15 @@ export class GameScene extends Phaser.Scene
 
 	create(): void
 	{	
-		// === create objects ===
-		this.gameWorldDimensions = new WorldDimensions();
-		this.inputKeys = new InputKeySet(this);
-		this.player = new Player(this, 0, 0, 'player');
-		this.octopus = new Octopus(this, 0, 0, 'octopus');
-		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
-		this.water = new Water(this, 0, 0, 'water');
-		this.aquarium = new Aquarium(this, 1030, 800, 'aquarium1');
-
 		// === configure them ===
+		this.gameWorldDimensions = new WorldDimensions();
 		this.gameWorldDimensions.worldWidth = 2080;
 		this.gameWorldDimensions.worldHeight = 1280;
 		this.gameWorldDimensions.worldCenterX = this.gameWorldDimensions.worldWidth / 2;
 		this.gameWorldDimensions.worldCenterY = this.gameWorldDimensions.worldHeight / 2;
 		this.gameWorldDimensions.groundHeight = 4 * 32;
 
-		// input
-		this.inputKeys.addAllKeys();
-
-		// light
-		this.lights.enable().setAmbientColor(0x000000);
-		this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
-		this.octopusLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
+		this.inputKeys = new InputKeySet(this);
 
 		// loading game world elements
 		this.add.tileSprite(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight, 'background_planks')
@@ -114,6 +100,26 @@ export class GameScene extends Phaser.Scene
 		const map = this.make.tilemap({ key: "map" });
 		const tileset = map.addTilesetImage("world_tails", "tiles");
 		this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
+
+		// === create objects ===
+		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
+		this.aquarium = new Aquarium(this, 1030, 800, 'aquarium1');
+
+		this.player = new Player(this, 0, 0, 'player');
+		this.octopus = new Octopus(this, 0, 0, 'octopus');
+		this.water = new Water(this, 0, 0, 'water');
+
+		this.add.image(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'foreground_glass')
+				.setDisplaySize(this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
+				//.setPipeline('Light2D');
+
+		// input
+		this.inputKeys.addAllKeys();
+
+		// light
+		this.lights.enable().setAmbientColor(0x000000);
+		this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
+		this.octopusLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
 	
 		// loading game livings
 		this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
@@ -164,10 +170,6 @@ export class GameScene extends Phaser.Scene
 		this.aquarium.setPipeline('Light2D');
 		this.aquarium.setWater(this.water);
 		this.aquarium.setOctopus(this.octopus);	
-	
-		this.add.image(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'foreground_glass')
-				.setDisplaySize(this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
-				//.setPipeline('Light2D');
 
 		// particles --> droplets
 		/* this.droplets = this.physics.add.group();
@@ -264,8 +266,8 @@ export class GameScene extends Phaser.Scene
 	update(time: number, delta: number): void
 	{
 		// update lights
-		this.playerLight.setPosition(this.player.x, this.player.y);
-		this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
+		/* this.playerLight.setPosition(this.player.x, this.player.y);
+		this.octopusLight.setPosition(this.octopus.x, this.octopus.y); */
 
 		// droplets
 		// console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));
@@ -309,7 +311,7 @@ export class GameScene extends Phaser.Scene
 		} */
 	
 		// hydrants
-		this.hydrants.anims.play('hydrant_turn');		
+		// this.hydrants.anims.play('hydrant_turn');		
 
 		// update objects
 		this.player.update(time, delta);

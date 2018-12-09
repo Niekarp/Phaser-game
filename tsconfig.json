@@ -8,10 +8,10 @@
         "./src/scenes/game-scene.ts",
         "./src/LightStickEmitter.ts",
         "./src/Octopus.ts",
-        "./src/Player.ts",
         "./src/Water.ts",
         "./src/Aquarium.ts",
         "./src/LightStick.ts",
+        "./src/Player.ts",
         "./src/InputKeySet.ts",
         "./src/WorldDimensions.ts"
     ]

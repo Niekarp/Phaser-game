@@ -25,6 +25,7 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.scene.physics.world.overlap(this, this.water);
+        console.log(playerInWater);
         // player movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
@@ -33,7 +34,7 @@ var Player = /** @class */ (function (_super) {
             else {
                 this.setVelocityX(-160);
             }
-            this.anims.play('left', true);
+            this.scene.anims.play('left', this);
         }
         else if (this.inputKeys.D.isDown) {
             if (playerInWater) {
