@@ -1,5 +1,6 @@
 import { LightStickEmitter } from "./LightStickEmitter";
 import { LightStick } from "./LightStick";
+import { Player } from "./Player";
 
 export class Octopus extends Phaser.Physics.Arcade.Sprite
 {
@@ -13,7 +14,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
     private defaultVelocity: number = 10;
     private lastChangedDirectionTime: number = 0;
     private lightStickEmitter: LightStickEmitter;
-    private player: Phaser.Physics.Arcade.Sprite;
+    private player: Player;
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
     {
@@ -116,7 +117,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
         this.lightStickEmitter = emitter;
     }
 
-    public setPlayer(player: Phaser.Physics.Arcade.Sprite): void
+    public setPlayer(player: Player): void
     {
         this.player = player;
     }
