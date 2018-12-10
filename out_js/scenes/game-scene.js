@@ -29,6 +29,7 @@ var GameScene = /** @class */ (function (_super) {
         }) || this;
         _this.hydrantCount = 10;
         _this.openHydrants = _this.hydrantCount;
+        _this.dropletsCount = 200;
         return _this;
     }
     // Phaser scene functions
@@ -104,9 +105,12 @@ var GameScene = /** @class */ (function (_super) {
             this.hydrants.add(hydrant);
         }
         this.hydrantMen = this.physics.add.group();
-        for (var i_2 = 0; i_2 < this.hydrantCount; ++i_2) {
-            var randomX = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
-            this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+        for (var i_2 = 0, sectorWidth = this.gameWorldDimensions.worldWidth / this.hydrantCount, currentSectorBegin = 0; i_2 < this.hydrantCount; ++i_2) {
+            var randomX = Phaser.Math.Between(currentSectorBegin, currentSectorBegin + sectorWidth);
+            this.hydrantMen.create(randomX, 0, 'hydrant1');
+            currentSectorBegin += sectorWidth;
+            /* let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
+            this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1'); */
         }
         this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // alive objects
@@ -121,6 +125,7 @@ var GameScene = /** @class */ (function (_super) {
             maxParticles: 10,
             accelerationY: -400
         });
+        var waterEmitterManager = this.add.particles('droplet');
         // foreground
         this.add.image(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'foreground_glass')
             .setDisplaySize(this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
@@ -129,7 +134,6 @@ var GameScene = /** @class */ (function (_super) {
         // loading game livings
         this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
         this.player.setWater(this.water);
-        // this.player.setHydrant(this.hydrants);
         this.player.setBubbleEmitter(this.bubblesEmitter);
         this.player.setInputKeySet(this.inputKeys);
         this.player.setBounce(0);
@@ -152,6 +156,14 @@ var GameScene = /** @class */ (function (_super) {
         this.aquarium.setWater(this.water);
         this.aquarium.setOctopus(this.octopus);
         this.hydrants.getChildren().forEach(function (hydrant) {
+            var waterEmitter = waterEmitterManager.createEmitter({
+                speed: 60,
+                scale: { start: 1, end: 0 },
+                maxParticles: 50,
+                accelerationY: 400
+            });
+            waterEmitter.startFollow(hydrant);
+            hydrant.setWaterEmitter(waterEmitter);
             hydrant.open();
             hydrant.setPipeline('Light2D');
         });
@@ -176,17 +188,19 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // particles --> droplets
         this.droplets = this.physics.add.group();
-        for (var i = 0; i < 500; i++) {
+        for (var i = 0; i < this.dropletsCount; i++) {
             var randomX = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
             var droplet = this.droplets.create(randomX, this.water.y, 'droplet');
             droplet.setCollideWorldBounds(true);
             droplet.setDamping(false);
-            droplet.setMass(2);
+            droplet.setMass(1.5);
             droplet.setBounce(1);
             droplet.setAlpha(0.3);
             droplet.setBlendMode(Phaser.BlendModes.ADD);
             droplet.setCircle(droplet.width * 0.3);
             droplet.setPipeline('Light2D');
+            droplet.disableBody(true, true);
+            this.dropletsVisible = false;
         }
         // ===
         // === OTHER ===
@@ -247,36 +261,13 @@ var GameScene = /** @class */ (function (_super) {
                                   
     */
     GameScene.prototype.update = function (time, delta) {
-        var _this = this;
         // lights
         this.playerLight.setPosition(this.player.x, this.player.y);
         this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
         // droplets
-        this.droplets.getChildren().forEach(function (d, i, arr) {
-            var droplet = d;
-            if (droplet.y > _this.water.y - (_this.water.displayHeight / 2)) {
-                droplet.setVelocityY(-100);
-            }
-            var dist = Phaser.Math.Distance.Between(_this.player.x, _this.player.y, droplet.x, droplet.y);
-            if (dist < 100) {
-                if (droplet.x > _this.player.x) {
-                    droplet.setVelocityX(50);
-                }
-                else {
-                    droplet.setVelocityX(-50);
-                }
-            }
-            else if (dist > 500) {
-                var newX = Phaser.Math.Between(_this.player.x - _this.mainCamera.width / 2, _this.player.x + _this.mainCamera.width / 2);
-                droplet.setPosition(newX, droplet.y);
-            }
-        });
-        if (this.player.y < this.water.y - (this.water.displayHeight / 2)) {
-            this.playerDropletsCollider.active = false;
-        }
-        else {
-            this.playerDropletsCollider.active = true;
-        }
+        this.updateDroplets();
+        this.checkPlayerOverDroplets();
+        this.dropletsCheckWaterLevel();
         // update objects
         this.player.update(time, delta);
         this.water.update(time, delta);
@@ -324,6 +315,56 @@ var GameScene = /** @class */ (function (_super) {
             if (this.openHydrants == 0) {
                 this.water.setWaterMovementDirection(Water_1.WaterMovementDirection.Down);
             }
+        }
+    };
+    GameScene.prototype.updateDroplets = function () {
+        var _this = this;
+        // droplets
+        this.droplets.getChildren().forEach(function (d, i, arr) {
+            var droplet = d;
+            if (droplet.y > _this.water.y - (_this.water.displayHeight / 2)) {
+                droplet.setVelocityY(-100);
+            }
+            var dist = Phaser.Math.Distance.Between(_this.player.x, _this.player.y, droplet.x, droplet.y);
+            var distX = Math.sqrt(Math.pow((_this.player.x - droplet.x), 2));
+            if (dist < 50) {
+                if (droplet.x > _this.player.x) {
+                    droplet.setVelocityX(30);
+                }
+                else {
+                    droplet.setVelocityX(-30);
+                }
+            }
+            else if (distX > _this.mainCamera.displayWidth / 2
+                && _this.player.x < _this.gameWorldDimensions.worldWidth - _this.mainCamera.displayWidth / 2
+                && _this.player.x > _this.mainCamera.displayWidth / 2) {
+                var newX = Phaser.Math.Between(_this.player.x - _this.mainCamera.displayWidth / 2, _this.player.x + _this.mainCamera.displayWidth / 2);
+                droplet.setPosition(newX, droplet.y);
+            }
+        });
+    };
+    GameScene.prototype.checkPlayerOverDroplets = function () {
+        if (this.player.y < this.water.y - (this.water.displayHeight / 2)) {
+            this.playerDropletsCollider.active = false;
+        }
+        else {
+            this.playerDropletsCollider.active = true;
+        }
+    };
+    GameScene.prototype.dropletsCheckWaterLevel = function () {
+        // console.log('water: ' + this.water.getCurrentY() + ' > '+ )
+        var littleOverGround = this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight - 100;
+        if (this.water.getCurrentY() > littleOverGround && this.dropletsVisible) {
+            this.droplets.getChildren().forEach(function (droplet) {
+                droplet.disableBody(true, true);
+            });
+            this.dropletsVisible = false;
+        }
+        else if (this.water.getCurrentY() < littleOverGround && !this.dropletsVisible) {
+            this.droplets.getChildren().forEach(function (droplet) {
+                droplet.enableBody(false, -100, -100, true, true);
+            });
+            this.dropletsVisible = true;
         }
     };
     return GameScene;

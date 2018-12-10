@@ -2,6 +2,7 @@
 export class Hydrant extends Phaser.Physics.Arcade.Image
 {
 	private opened: boolean = false;
+	private waterEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
 	constructor (scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
 	{
@@ -21,10 +22,17 @@ export class Hydrant extends Phaser.Physics.Arcade.Image
 	public open(): void
 	{
 		this.opened = true;
+		this.waterEmitter.start();
 	}
 
 	public close(): void
 	{
 		this.opened = false;
+		this.waterEmitter.stop();
+	}
+
+	public setWaterEmitter(waterEmitter: Phaser.GameObjects.Particles.ParticleEmitter): void
+	{
+		this.waterEmitter = waterEmitter;
 	}
 }

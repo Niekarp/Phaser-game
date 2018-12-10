@@ -28,9 +28,14 @@ var Hydrant = /** @class */ (function (_super) {
     };
     Hydrant.prototype.open = function () {
         this.opened = true;
+        this.waterEmitter.start();
     };
     Hydrant.prototype.close = function () {
         this.opened = false;
+        this.waterEmitter.stop();
+    };
+    Hydrant.prototype.setWaterEmitter = function (waterEmitter) {
+        this.waterEmitter = waterEmitter;
     };
     return Hydrant;
 }(Phaser.Physics.Arcade.Image));

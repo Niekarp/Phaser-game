@@ -59,4 +59,9 @@ export class Water extends Phaser.Physics.Arcade.Image
 	{
 		this.worldDimensions = dimensions;
 	}
+
+	public getCurrentY(): number
+	{
+		return this.y - (this.displayHeight / 2);
+	}
 }

@@ -56,16 +56,17 @@ var Player = /** @class */ (function (_super) {
             this.doubleJump = true;
         } */
         if (this.inputKeys.W.isDown && playerInWater) {
-            console.log('water');
+            // console.log('water');
+            this.doubleJump = false;
             this.setVelocityY(-600);
         }
         else if (this.inputKeys.W.isDown && this.body.blocked.down) {
-            console.log('ground');
+            // console.log('ground');
             this.doubleJump = true;
             this.setVelocityY(-330);
         }
         else if (this.inputKeys.W.isDown && this.doubleJump) {
-            console.log('fly');
+            // console.log('fly');
             if (this.body.velocity.y > -150) {
                 this.doubleJump = false;
                 this.setVelocityY(-330);

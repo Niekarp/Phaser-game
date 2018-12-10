@@ -53,6 +53,9 @@ var Water = /** @class */ (function (_super) {
     Water.prototype.setWorldDimensions = function (dimensions) {
         this.worldDimensions = dimensions;
     };
+    Water.prototype.getCurrentY = function () {
+        return this.y - (this.displayHeight / 2);
+    };
     return Water;
 }(Phaser.Physics.Arcade.Image));
 exports.Water = Water;

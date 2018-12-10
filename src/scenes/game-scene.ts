@@ -15,6 +15,8 @@ export class GameScene extends Phaser.Scene
 	private gameWorldDimensions: WorldDimensions;
 	private hydrantCount: number = 10;
 	private openHydrants: number = this.hydrantCount;
+	private dropletsCount: number = 200;
+	private dropletsVisible: boolean;
 
 	// Game world elements
 	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;	
@@ -33,6 +35,7 @@ export class GameScene extends Phaser.Scene
 	private inputKeys: InputKeySet;
 	private playerDropletsCollider: Phaser.Physics.Arcade.Collider;
 	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+	// private waterEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 	private lightStickEmitter: LightStickEmitter;
 
 	// Lights
@@ -138,10 +141,17 @@ export class GameScene extends Phaser.Scene
 			this.hydrants.add(hydrant);
 		}
 		this.hydrantMen = this.physics.add.group();
-		for(let i: number = 0; i < this.hydrantCount; ++i)
+		for(let i: number = 0,
+			sectorWidth: number = this.gameWorldDimensions.worldWidth / this.hydrantCount,
+			currentSectorBegin: number = 0
+			; i < this.hydrantCount; ++i)
 		{
-			let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
-			this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+			let randomX = Phaser.Math.Between(currentSectorBegin, currentSectorBegin + sectorWidth);
+			this.hydrantMen.create(randomX, 0, 'hydrant1');
+
+			currentSectorBegin += sectorWidth;
+			/* let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
+			this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1'); */
 		}
 		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
 
@@ -158,6 +168,7 @@ export class GameScene extends Phaser.Scene
 			maxParticles: 10,
 			accelerationY: -400,
 		});
+		let waterEmitterManager = this.add.particles('droplet');
 
 		// foreground
 		this.add.image(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'foreground_glass')
@@ -170,7 +181,6 @@ export class GameScene extends Phaser.Scene
 		// loading game livings
 		this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
 		this.player.setWater(this.water);
-		// this.player.setHydrant(this.hydrants);
 		this.player.setBubbleEmitter(this.bubblesEmitter);
 		this.player.setInputKeySet(this.inputKeys);
 		this.player.setBounce(0);
@@ -197,6 +207,14 @@ export class GameScene extends Phaser.Scene
 		this.aquarium.setOctopus(this.octopus);	
 
 		this.hydrants.getChildren().forEach((hydrant: Hydrant) => {
+			let waterEmitter = waterEmitterManager.createEmitter({
+				speed: 60,
+				scale: { start: 1, end: 0 },
+				maxParticles: 50,
+				accelerationY: 400,
+			});
+			waterEmitter.startFollow(hydrant);
+			hydrant.setWaterEmitter(waterEmitter);
 			hydrant.open();
 			hydrant.setPipeline('Light2D');
 		});
@@ -225,7 +243,7 @@ export class GameScene extends Phaser.Scene
 
 		// particles --> droplets
 		this.droplets = this.physics.add.group();
-		for (var i = 0; i < 500; i++)
+		for (var i = 0; i < this.dropletsCount; i++)
 		{
 			let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
 
@@ -233,12 +251,15 @@ export class GameScene extends Phaser.Scene
 
 			droplet.setCollideWorldBounds(true);
 			droplet.setDamping(false);
-			droplet.setMass(2);
+			droplet.setMass(1.5);
 			droplet.setBounce(1);
 			droplet.setAlpha(0.3);
 			droplet.setBlendMode(Phaser.BlendModes.ADD);
 			droplet.setCircle(droplet.width * 0.3);
 			droplet.setPipeline('Light2D');
+
+			droplet.disableBody(true, true);
+			this.dropletsVisible = false;
 		}
 		// ===
 
@@ -315,43 +336,9 @@ export class GameScene extends Phaser.Scene
 		this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
 
 		// droplets
-		this.droplets.getChildren().forEach((d, i, arr) => 
-		{
-			let droplet = <Phaser.Physics.Arcade.Sprite>d;
-			if (droplet.y > this.water.y - (this.water.displayHeight / 2))
-			{ 
-				droplet.setVelocityY(-100);
-			}
-
-			let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y,
-				droplet.x, droplet.y);
-				
-			if (dist < 100)
-			{
-				if (droplet.x > this.player.x)
-				{
-					droplet.setVelocityX(50);
-				}
-				else
-				{
-					droplet.setVelocityX(-50);
-				}
-			}
-			else if (dist > 500)
-			{
-				let newX = Phaser.Math.Between(this.player.x - this.mainCamera.width / 2, this.player.x + this.mainCamera.width / 2, );
-
-				droplet.setPosition(newX, droplet.y);
-			}
-		});
-		if (this.player.y <  this.water.y - (this.water.displayHeight / 2))
-		{
-			this.playerDropletsCollider.active = false;
-		}
-		else
-		{
-			this.playerDropletsCollider.active = true;
-		}
+		this.updateDroplets();
+		this.checkPlayerOverDroplets();
+		this.dropletsCheckWaterLevel();
 	
 		// update objects
 		this.player.update(time, delta);
@@ -417,6 +404,76 @@ export class GameScene extends Phaser.Scene
 			{
 				this.water.setWaterMovementDirection(WaterMovementDirection.Down);
 			}
+		}
+	}
+
+	updateDroplets()
+	{
+		// droplets
+		this.droplets.getChildren().forEach((d, i, arr) => 
+		{
+			let droplet = <Phaser.Physics.Arcade.Sprite>d;
+			if (droplet.y > this.water.y - (this.water.displayHeight / 2))
+			{ 
+				droplet.setVelocityY(-100);
+			}
+
+			let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y,
+				droplet.x, droplet.y);
+			let distX = Math.sqrt((this.player.x - droplet.x)**2);
+				
+			if (dist < 50)
+			{
+				if (droplet.x > this.player.x)
+				{
+					droplet.setVelocityX(30);
+				}
+				else
+				{
+					droplet.setVelocityX(-30);
+				}
+			}
+			else if (distX > this.mainCamera.displayWidth / 2
+					&& this.player.x < this.gameWorldDimensions.worldWidth - this.mainCamera.displayWidth / 2
+					&& this.player.x > this.mainCamera.displayWidth / 2)
+			{
+				let newX = Phaser.Math.Between(this.player.x - this.mainCamera.displayWidth / 2, this.player.x + this.mainCamera.displayWidth / 2, );
+
+				droplet.setPosition(newX, droplet.y);
+			}
+		});
+	}
+
+	checkPlayerOverDroplets()
+	{
+		if (this.player.y <  this.water.y - (this.water.displayHeight / 2))
+		{
+			this.playerDropletsCollider.active = false;
+		}
+		else
+		{
+			this.playerDropletsCollider.active = true;
+		}
+	}
+
+	dropletsCheckWaterLevel()
+	{
+		// console.log('water: ' + this.water.getCurrentY() + ' > '+ )
+		let littleOverGround: number = this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight - 100;
+
+		if (this.water.getCurrentY() > littleOverGround && this.dropletsVisible)
+		{
+			this.droplets.getChildren().forEach((droplet: Phaser.Physics.Arcade.Sprite) => {
+				droplet.disableBody(true, true);
+			});
+			this.dropletsVisible = false;
+		}
+		else if (this.water.getCurrentY() < littleOverGround && !this.dropletsVisible)
+		{
+			this.droplets.getChildren().forEach((droplet: Phaser.Physics.Arcade.Sprite) => {
+				droplet.enableBody(false, -100, - 100, true, true);
+			});
+			this.dropletsVisible = true;
 		}
 	}
 }
