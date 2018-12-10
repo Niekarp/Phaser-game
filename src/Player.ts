@@ -6,6 +6,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 {
 	private water: Water;
 	// private hydrant: Hydrant;
+	private doubleJump: boolean = false;
 	private bubbleEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 	private inputKeys: InputKeySet;
 
@@ -59,13 +60,31 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 		}
 	
 			// movement -> jump
-		if (this.inputKeys.W.isDown && this.body.blocked.down)
+		/* if (this.body.blocked.down)
 		{
+			this.doubleJump = true;
+		} */
+
+		if (this.inputKeys.W.isDown && playerInWater)
+		{
+			// console.log('water');
+			this.doubleJump = false;
+			this.setVelocityY(-600);
+		}
+		else if (this.inputKeys.W.isDown && this.body.blocked.down)
+		{
+			// console.log('ground');
+			this.doubleJump = true;
 			this.setVelocityY(-330);
 		}
-		else if (this.inputKeys.W.isDown && playerInWater)
+		else if (this.inputKeys.W.isDown && this.doubleJump)
 		{
-			this.setVelocityY(-600);
+			// console.log('fly');
+			if (this.body.velocity.y > -150)
+			{
+				this.doubleJump = false;
+				this.setVelocityY(-330);
+			}
 		}
 
 		// bubbles

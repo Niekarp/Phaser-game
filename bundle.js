@@ -325,6 +325,8 @@ var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
+        // private hydrant: Hydrant;
+        _this.doubleJump = false;
         scene.physics.add.sys.displayList.add(_this);
         scene.physics.add.sys.updateList.add(_this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.DYNAMIC_BODY);
@@ -357,11 +359,25 @@ var Player = /** @class */ (function (_super) {
             this.anims.play('turn');
         }
         // movement -> jump
-        if (this.inputKeys.W.isDown && this.body.blocked.down) {
+        /* if (this.body.blocked.down)
+        {
+            this.doubleJump = true;
+        } */
+        if (this.inputKeys.W.isDown && playerInWater) {
+            console.log('water');
+            this.setVelocityY(-600);
+        }
+        else if (this.inputKeys.W.isDown && this.body.blocked.down) {
+            console.log('ground');
+            this.doubleJump = true;
             this.setVelocityY(-330);
         }
-        else if (this.inputKeys.W.isDown && playerInWater) {
-            this.setVelocityY(-600);
+        else if (this.inputKeys.W.isDown && this.doubleJump) {
+            console.log('fly');
+            if (this.body.velocity.y > -150) {
+                this.doubleJump = false;
+                this.setVelocityY(-330);
+            }
         }
         // bubbles
         if (playerInWater) {
