@@ -33,7 +33,7 @@ export class Water extends Phaser.Physics.Arcade.Image
 		{
 			this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
 		}
-		else if (this.displayHeight > 0 && this.waterMovementDirection == WaterMovementDirection.Down)
+		else if (this.displayHeight > -5 && this.waterMovementDirection == WaterMovementDirection.Down)
 		{
 			this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
 		}

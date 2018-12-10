@@ -446,7 +446,7 @@ var Water = /** @class */ (function (_super) {
         if (this.displayHeight <= this.waterHeightLimit && this.waterMovementDirection == WaterMovementDirection.Up) {
             this.setDisplaySize(this.displayWidth, this.displayHeight + 0.1).refreshBody();
         }
-        else if (this.displayHeight > 0 && this.waterMovementDirection == WaterMovementDirection.Down) {
+        else if (this.displayHeight > -5 && this.waterMovementDirection == WaterMovementDirection.Down) {
             this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
         }
         this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.worldHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
