@@ -82,10 +82,10 @@ export class GameScene extends Phaser.Scene
 		
 		this.load.spritesheet({
 			key: 'player',
-			url: '../assets/player_xd.png',
+			url: '../assets/player_2.png',
 			frameConfig: {
-				frameWidth: 152,
-				frameHeight: 89
+				frameWidth: 327,
+				frameHeight: 223
 			}
 		});
 		this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
@@ -107,8 +107,8 @@ export class GameScene extends Phaser.Scene
 		
 		// configure world dimensions
 		this.gameWorldDimensions = new WorldDimensions();
-		this.gameWorldDimensions.worldWidth = 2080;
-		this.gameWorldDimensions.worldHeight = 1280;
+		this.gameWorldDimensions.worldWidth = 4800;
+		this.gameWorldDimensions.worldHeight = 3200;
 		this.gameWorldDimensions.worldCenterX = this.gameWorldDimensions.worldWidth / 2;
 		this.gameWorldDimensions.worldCenterY = this.gameWorldDimensions.worldHeight / 2;
 		this.gameWorldDimensions.groundHeight = 4 * 32;
@@ -180,6 +180,7 @@ export class GameScene extends Phaser.Scene
 
 		// loading game livings
 		this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
+		this.player.setScale(0.5, 0.5);
 		this.player.setWater(this.water);
 		this.player.setBubbleEmitter(this.bubblesEmitter);
 		this.player.setInputKeySet(this.inputKeys);
@@ -270,18 +271,14 @@ export class GameScene extends Phaser.Scene
 		// animations
 		this.anims.create({
 			key: 'left',
-			frames: [ { key: 'player', frame: 0 } ],
+			frames: this.anims.generateFrameNumbers('player', { start: 6, end: 9 }),
 			frameRate: 10,
 		});
 		this.anims.create({
 			key: 'turn',
-			frames: [ { key: 'player', frame: 1 } ],
-			frameRate: 20
-		});
-		this.anims.create({
-			key: 'right',
-			frames: [ { key: 'player', frame: 2 } ],
-			frameRate: 10
+			frames: this.anims.generateFrameNumbers('player', { start: 0, end: 5 }),
+			frameRate: 5,
+			repeat: -1
 		});
 	
 		this.anims.create({

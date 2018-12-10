@@ -37,7 +37,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 				this.setVelocityX(-160);
 			}
 	
-			this.scene.anims.play('left', this);
+			this.setFlipX(false);
+			this.anims.play('left', true);
 		}
 		else if (this.inputKeys.D.isDown)
 		{
@@ -50,21 +51,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 				this.setVelocityX(160);
 			}
 	
-			this.anims.play('right', true);
+			this.setFlipX(true);
+			this.anims.play('left', true);
 		}
 		else
 		{
 			this.setVelocityX(0);
 	
-			this.anims.play('turn');
+			this.anims.play('turn', true);
 		}
 	
 			// movement -> jump
-		/* if (this.body.blocked.down)
-		{
-			this.doubleJump = true;
-		} */
-
 		if (this.inputKeys.W.isDown && playerInWater)
 		{
 			// console.log('water');
