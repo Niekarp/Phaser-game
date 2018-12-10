@@ -240,6 +240,7 @@ export class GameScene extends Phaser.Scene
 			accelerationY: -400,
 			frequency: 400,
 		};		
+		this.lightStickEmitter.water = this.water;
 		this.octopus.setLightStickEmitter(this.lightStickEmitter);
 
 		// particles --> droplets

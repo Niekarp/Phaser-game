@@ -23,7 +23,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite
     {
 		super.update(time, delta);
 
-		const playerInWater: boolean = this.scene.physics.world.overlap(<any>this, <any>this.water);
+		const playerInWater = this.water.objectInWater(this);
 
 		// movement
 		if (this.inputKeys.A.isDown)

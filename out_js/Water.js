@@ -56,6 +56,9 @@ var Water = /** @class */ (function (_super) {
     Water.prototype.getCurrentY = function () {
         return this.y - (this.displayHeight / 2);
     };
+    Water.prototype.objectInWater = function (object) {
+        return this.scene.physics.world.overlap(this, object);
+    };
     return Water;
 }(Phaser.Physics.Arcade.Image));
 exports.Water = Water;

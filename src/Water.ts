@@ -64,4 +64,9 @@ export class Water extends Phaser.Physics.Arcade.Image
 	{
 		return this.y - (this.displayHeight / 2);
 	}
+
+	public objectInWater(object: any): boolean
+	{
+		return  this.scene.physics.world.overlap(<any>this, <any>object);
+	}
 }

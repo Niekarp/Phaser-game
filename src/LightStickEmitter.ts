@@ -1,4 +1,5 @@
 import { LightStick } from "./LightStick";
+import { Water } from "./Water";
 
 export class LightStickEmitter
 {
@@ -6,6 +7,7 @@ export class LightStickEmitter
     public bubbleEmitterManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
     public bubbleEmitterConfig: ParticleEmitterConfig;
     public followOffsetY: number = -20;
+    public water: Water;
 
     private lightSticks: LightStick[] = [];
     private scene: Phaser.Scene;
@@ -15,6 +17,7 @@ export class LightStickEmitter
     {
         this.scene = scene;
         this.texture = texture;
+        this.water = null;
     }
 
     public update(time: number, delta: number): void
@@ -29,7 +32,9 @@ export class LightStickEmitter
 				lightStick.setDragX(500);
 			}
 			lightStick.light.x = lightStick.x;
-			lightStick.light.y = lightStick.y;
+            lightStick.light.y = lightStick.y;
+            
+            lightStick.update(time, delta);
 		});
     }
 
@@ -46,13 +51,14 @@ export class LightStickEmitter
 		lightStick.light.setIntensity(2)
 		lightStick.light.setColor(lightColor);
         lightStick.setTint(lightColor);
+        lightStick.water = this.water;
         
         if(this.bubbleEmitterManager)
         {
             let emitter = this.bubbleEmitterManager.createEmitter(this.bubbleEmitterConfig);
             lightStick.bubbleEmitter = emitter;
             lightStick.bubbleEmitter.startFollow(lightStick);
-            lightStick.bubbleEmitter.start();
+            lightStick.bubbleEmitter.stop();
             lightStick.bubbleEmitter.followOffset.y = this.followOffsetY;
         }
 		
@@ -62,7 +68,7 @@ export class LightStickEmitter
             this.lightSticks[0].bubbleEmitter.stop();
 			this.lightSticks[0].destroy();
 			this.lightSticks.shift();
-		}
+        }
 		
         this.lightSticks.push(lightStick);
         

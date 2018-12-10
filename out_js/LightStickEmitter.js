@@ -8,6 +8,7 @@ var LightStickEmitter = /** @class */ (function () {
         this.lightSticks = [];
         this.scene = scene;
         this.texture = texture;
+        this.water = null;
     }
     LightStickEmitter.prototype.update = function (time, delta) {
         this.lightSticks.forEach(function (lightStick) {
@@ -19,6 +20,7 @@ var LightStickEmitter = /** @class */ (function () {
             }
             lightStick.light.x = lightStick.x;
             lightStick.light.y = lightStick.y;
+            lightStick.update(time, delta);
         });
     };
     LightStickEmitter.prototype["throw"] = function (x, y, throwAngle) {
@@ -32,11 +34,12 @@ var LightStickEmitter = /** @class */ (function () {
         lightStick.light.setIntensity(2);
         lightStick.light.setColor(lightColor);
         lightStick.setTint(lightColor);
+        lightStick.water = this.water;
         if (this.bubbleEmitterManager) {
             var emitter = this.bubbleEmitterManager.createEmitter(this.bubbleEmitterConfig);
             lightStick.bubbleEmitter = emitter;
             lightStick.bubbleEmitter.startFollow(lightStick);
-            lightStick.bubbleEmitter.start();
+            lightStick.bubbleEmitter.stop();
             lightStick.bubbleEmitter.followOffset.y = this.followOffsetY;
         }
         if (this.scene.lights.lights.length > this.scene.lights.maxLights) {

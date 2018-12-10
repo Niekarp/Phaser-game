@@ -186,6 +186,7 @@ var GameScene = /** @class */ (function (_super) {
             accelerationY: -400,
             frequency: 400
         };
+        this.lightStickEmitter.water = this.water;
         this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // particles --> droplets
         this.droplets = this.physics.add.group();

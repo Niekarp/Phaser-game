@@ -132,6 +132,19 @@ var LightStick = /** @class */ (function (_super) {
         return _this;
         //this.disableBody(true, true);
     }
+    LightStick.prototype.update = function (time, delta) {
+        var inWater = this.water.objectInWater(this);
+        if (inWater) {
+            if (!this.bubbleEmitter.on) {
+                this.bubbleEmitter.start();
+            }
+        }
+        else {
+            if (this.bubbleEmitter.on) {
+                this.bubbleEmitter.stop();
+            }
+        }
+    };
     return LightStick;
 }(Phaser.Physics.Arcade.Sprite));
 exports.LightStick = LightStick;
@@ -147,6 +160,7 @@ var LightStickEmitter = /** @class */ (function () {
         this.lightSticks = [];
         this.scene = scene;
         this.texture = texture;
+        this.water = null;
     }
     LightStickEmitter.prototype.update = function (time, delta) {
         this.lightSticks.forEach(function (lightStick) {
@@ -158,6 +172,7 @@ var LightStickEmitter = /** @class */ (function () {
             }
             lightStick.light.x = lightStick.x;
             lightStick.light.y = lightStick.y;
+            lightStick.update(time, delta);
         });
     };
     LightStickEmitter.prototype["throw"] = function (x, y, throwAngle) {
@@ -171,11 +186,12 @@ var LightStickEmitter = /** @class */ (function () {
         lightStick.light.setIntensity(2);
         lightStick.light.setColor(lightColor);
         lightStick.setTint(lightColor);
+        lightStick.water = this.water;
         if (this.bubbleEmitterManager) {
             var emitter = this.bubbleEmitterManager.createEmitter(this.bubbleEmitterConfig);
             lightStick.bubbleEmitter = emitter;
             lightStick.bubbleEmitter.startFollow(lightStick);
-            lightStick.bubbleEmitter.start();
+            lightStick.bubbleEmitter.stop();
             lightStick.bubbleEmitter.followOffset.y = this.followOffsetY;
         }
         if (this.scene.lights.lights.length > this.scene.lights.maxLights) {
@@ -339,7 +355,7 @@ var Player = /** @class */ (function (_super) {
     }
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
-        var playerInWater = this.scene.physics.world.overlap(this, this.water);
+        var playerInWater = this.water.objectInWater(this);
         // movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
@@ -465,6 +481,9 @@ var Water = /** @class */ (function (_super) {
     };
     Water.prototype.getCurrentY = function () {
         return this.y - (this.displayHeight / 2);
+    };
+    Water.prototype.objectInWater = function (object) {
+        return this.scene.physics.world.overlap(this, object);
     };
     return Water;
 }(Phaser.Physics.Arcade.Image));
@@ -693,6 +712,7 @@ var GameScene = /** @class */ (function (_super) {
             accelerationY: -400,
             frequency: 400
         };
+        this.lightStickEmitter.water = this.water;
         this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // particles --> droplets
         this.droplets = this.physics.add.group();

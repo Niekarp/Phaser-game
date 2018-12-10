@@ -24,6 +24,19 @@ var LightStick = /** @class */ (function (_super) {
         return _this;
         //this.disableBody(true, true);
     }
+    LightStick.prototype.update = function (time, delta) {
+        var inWater = this.water.objectInWater(this);
+        if (inWater) {
+            if (!this.bubbleEmitter.on) {
+                this.bubbleEmitter.start();
+            }
+        }
+        else {
+            if (this.bubbleEmitter.on) {
+                this.bubbleEmitter.stop();
+            }
+        }
+    };
     return LightStick;
 }(Phaser.Physics.Arcade.Sprite));
 exports.LightStick = LightStick;
