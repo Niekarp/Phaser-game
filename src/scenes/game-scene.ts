@@ -133,7 +133,7 @@ export class GameScene extends Phaser.Scene
 		this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
 
 		// dead objects
-		this.aquarium = new Aquarium(this, 1030, 800, 'aquarium1');
+		this.aquarium = new Aquarium(this, 1030, 970, 'aquarium1');
 		this.hydrants = this.physics.add.staticGroup();
 		for(let i: number = 0; i < this.hydrantCount; ++i)
 		{

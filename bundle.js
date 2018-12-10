@@ -242,9 +242,12 @@ var Octopus = /** @class */ (function (_super) {
         _this.minPlayerChaseDistance = 500;
         _this.defaultVelocity = 10;
         _this.lastChangedDirectionTime = 0;
+        _this.previousVelocityX = 0;
+        _this.previousVelocityY = 0;
         scene.physics.add.sys.displayList.add(_this);
         scene.physics.add.sys.updateList.add(_this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.DYNAMIC_BODY);
+        //this.setCircle(0.75 * (this.width + this.height) / 2);
         _this.disableBody(true, true);
         return _this;
     }
@@ -253,7 +256,7 @@ var Octopus = /** @class */ (function (_super) {
         _super.prototype.update.call(this, time, delta);
         if (this.released) {
             this.anims.play('life', true);
-            if (this.scaleX < 1.0) {
+            if (this.scaleX < 0.75) {
                 this.setScale(this.scaleX + delta / this.growSpeedFactor, this.scaleY + delta / this.growSpeedFactor);
                 return;
             }
@@ -320,7 +323,11 @@ var Octopus = /** @class */ (function (_super) {
         this.setWalkingAngle(Phaser.Math.FloatBetween(0, 2 * Math.PI));
     };
     Octopus.prototype.setWalkingAngle = function (radians) {
+        var newVelocityX = (3 * this.previousVelocityX + this.defaultVelocity * Math.cos(radians)) / 4;
+        var newVelocityY = (3 * this.previousVelocityY + this.defaultVelocity * Math.cos(radians)) / 4;
         this.setVelocity(this.defaultVelocity * Math.cos(radians), this.defaultVelocity * Math.sin(radians));
+        this.previousVelocityX = newVelocityX;
+        this.previousVelocityY = newVelocityY;
     };
     return Octopus;
 }(Phaser.Physics.Arcade.Sprite));
@@ -624,7 +631,7 @@ var GameScene = /** @class */ (function (_super) {
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
         // dead objects
-        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
+        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1');
         this.hydrants = this.physics.add.staticGroup();
         for (var i_1 = 0; i_1 < this.hydrantCount; ++i_1) {
             var hydrant = new Hydrant_1.Hydrant(this, 0, 0, 'hydrant1');

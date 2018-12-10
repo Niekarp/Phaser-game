@@ -98,7 +98,7 @@ var GameScene = /** @class */ (function (_super) {
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
         // dead objects
-        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
+        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1');
         this.hydrants = this.physics.add.staticGroup();
         for (var i_1 = 0; i_1 < this.hydrantCount; ++i_1) {
             var hydrant = new Hydrant_1.Hydrant(this, 0, 0, 'hydrant1');

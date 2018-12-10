@@ -23,6 +23,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
         scene.physics.add.sys.displayList.add(this);
         scene.physics.add.sys.updateList.add(this);
         scene.physics.add.world.enableBody(this, Phaser.Physics.Arcade.DYNAMIC_BODY);
+        //this.setCircle(0.75 * (this.width + this.height) / 2);
 
         this.disableBody(true, true);
     }
@@ -34,7 +35,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
         if(this.released)
         {
             this.anims.play('life', true);
-            if(this.scaleX < 1.0)
+            if(this.scaleX < 0.75)
             {
                 this.setScale(this.scaleX + delta / this.growSpeedFactor,
                     this.scaleY + delta / this.growSpeedFactor);
@@ -132,10 +133,17 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
         this.setWalkingAngle(Phaser.Math.FloatBetween(0, 2 * Math.PI));
     }
 
+    private previousVelocityX: number = 0;
+    private previousVelocityY: number = 0;
+
     private setWalkingAngle(radians: number): void
     {
+        let newVelocityX = (3 * this.previousVelocityX + this.defaultVelocity * Math.cos(radians)) / 4;
+        let newVelocityY = (3 * this.previousVelocityY + this.defaultVelocity * Math.cos(radians)) / 4;
         this.setVelocity(this.defaultVelocity * Math.cos(radians),
                 this.defaultVelocity * Math.sin(radians));
+        this.previousVelocityX = newVelocityX;
+        this.previousVelocityY = newVelocityY;
     }
 
 }
