@@ -667,7 +667,8 @@ var GameScene = /** @class */ (function (_super) {
                 speed: 60,
                 scale: { start: 1, end: 0 },
                 maxParticles: 50,
-                accelerationY: 400
+                accelerationY: 400,
+                alpha: 0.2
             });
             waterEmitter.startFollow(hydrant);
             hydrant.setWaterEmitter(waterEmitter);

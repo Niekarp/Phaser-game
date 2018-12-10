@@ -212,6 +212,7 @@ export class GameScene extends Phaser.Scene
 				scale: { start: 1, end: 0 },
 				maxParticles: 50,
 				accelerationY: 400,
+				alpha: 0.2
 			});
 			waterEmitter.startFollow(hydrant);
 			hydrant.setWaterEmitter(waterEmitter);
