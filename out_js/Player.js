@@ -13,7 +13,6 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
-var Water_1 = require("./Water");
 var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
@@ -56,12 +55,6 @@ var Player = /** @class */ (function (_super) {
         else if (this.inputKeys.W.isDown && playerInWater) {
             this.setVelocityY(-600);
         }
-        // actions
-        if (this.scene.physics.world.overlap(this, this.hydrant)
-            && this.inputKeys.F.isDown
-            && this.water.getWaterMovementDirection() == Water_1.WaterMovementDirection.Up) {
-            this.water.setWaterMovementDirection(Water_1.WaterMovementDirection.Down);
-        }
         // bubbles
         if (playerInWater) {
             this.bubbleEmitter.emitParticle();
@@ -70,9 +63,10 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.setWater = function (water) {
         this.water = water;
     };
-    Player.prototype.setHydrant = function (hydrant) {
+    /* public setHydrant(hydrant: Hydrant): void
+    {
         this.hydrant = hydrant;
-    };
+    } */
     Player.prototype.setBubbleEmitter = function (bubbleEmitter) {
         this.bubbleEmitter = bubbleEmitter;
     };

@@ -11,18 +11,17 @@ import { Hydrant } from '../Hydrant';
 
 export class GameScene extends Phaser.Scene
 {
-	// Lights
-	private playerLight: Phaser.GameObjects.Light;
-	private octopusLight: Phaser.GameObjects.Light;
-
 	// Game settings
 	private gameWorldDimensions: WorldDimensions;
+	private hydrantCount: number = 10;
+	private openHydrants: number = this.hydrantCount;
 
 	// Game world elements
 	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;	
 	private aquarium: Aquarium;
 	private water: Water;
-	private hydrants: Hydrant;
+	private hydrants: Phaser.Physics.Arcade.StaticGroup;
+	private hydrantMen: Phaser.Physics.Arcade.Group;
 	private droplets: Phaser.Physics.Arcade.Group;
 
 	// Game livings
@@ -35,6 +34,10 @@ export class GameScene extends Phaser.Scene
 	private playerDropletsCollider: Phaser.Physics.Arcade.Collider;
 	private bubblesEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 	private lightStickEmitter: LightStickEmitter;
+
+	// Lights
+	private playerLight: Phaser.GameObjects.Light;
+	private octopusLight: Phaser.GameObjects.Light;
 
 	constructor()
 	{
@@ -128,7 +131,18 @@ export class GameScene extends Phaser.Scene
 
 		// dead objects
 		this.aquarium = new Aquarium(this, 1030, 800, 'aquarium1');
-		this.hydrants = new Hydrant(this, this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+		this.hydrants = this.physics.add.staticGroup();
+		for(let i: number = 0; i < this.hydrantCount; ++i)
+		{
+			let hydrant: Hydrant = new Hydrant(this, 0, 0, 'hydrant1');
+			this.hydrants.add(hydrant);
+		}
+		this.hydrantMen = this.physics.add.group();
+		for(let i: number = 0; i < this.hydrantCount; ++i)
+		{
+			let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
+			this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+		}
 		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
 
 		// alive objects
@@ -156,7 +170,7 @@ export class GameScene extends Phaser.Scene
 		// loading game livings
 		this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
 		this.player.setWater(this.water);
-		this.player.setHydrant(this.hydrants);
+		// this.player.setHydrant(this.hydrants);
 		this.player.setBubbleEmitter(this.bubblesEmitter);
 		this.player.setInputKeySet(this.inputKeys);
 		this.player.setBounce(0);
@@ -182,9 +196,10 @@ export class GameScene extends Phaser.Scene
 		this.aquarium.setWater(this.water);
 		this.aquarium.setOctopus(this.octopus);	
 
-		this.hydrants.open();
-		this.hydrants.setCollideWorldBounds(true);
-		this.hydrants.setPipeline('Light2D');
+		this.hydrants.getChildren().forEach((hydrant: Hydrant) => {
+			hydrant.open();
+			hydrant.setPipeline('Light2D');
+		});
 
 		// light
 		this.lights.enable().setAmbientColor(0x000000);
@@ -260,6 +275,17 @@ export class GameScene extends Phaser.Scene
 		this.physics.add.collider(this.player, this.worldLayer);
 		this.physics.add.collider(this.octopus, this.worldLayer);
 		this.physics.add.collider(this.hydrants, this.worldLayer);
+		this.hydrantMen.getChildren().forEach((hMan, idx) => {
+			let correspondingHydrant = <Hydrant>this.hydrants.getChildren()[idx];
+
+			this.physics.add.collider(hMan, this.worldLayer, (hydrantMan: Phaser.Physics.Arcade.Image, wl) => {
+				this.hydrantHydrantManCollide(correspondingHydrant, hydrantMan);
+			});
+
+			this.physics.add.overlap(correspondingHydrant, this.player, (hydrant: Hydrant, player: Player) => {
+				this.hydrantPlayerOverlap(hydrant, player);
+			});
+		});
 		this.playerDropletsCollider = this.physics.add.collider(this.player, this.droplets);
 
 		// camera
@@ -369,5 +395,28 @@ export class GameScene extends Phaser.Scene
 		console.log("Fuck!");
 		//this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
 		this.player.disableBody(true, true);
+	}
+
+	hydrantHydrantManCollide(hydrant: Hydrant, hydrantMan: Phaser.Physics.Arcade.Image): void
+	{
+		hydrant.enableBody(false, 0, 0, true, true);
+		hydrant.setPosition(hydrantMan.x, hydrantMan.y).refreshBody();
+
+		hydrantMan.disableBody(true, true);
+	}
+	
+	hydrantPlayerOverlap(hydrant: Hydrant, player: Player)
+	{
+		if (this.inputKeys.F.isDown 
+			&& hydrant.isOpen()
+			&& this.water.getWaterMovementDirection() == WaterMovementDirection.Up)
+		{
+			hydrant.close();
+			this.openHydrants -= 1;
+			if (this.openHydrants == 0)
+			{
+				this.water.setWaterMovementDirection(WaterMovementDirection.Down);
+			}
+		}
 	}
 }

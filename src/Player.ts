@@ -5,7 +5,7 @@ import { Hydrant } from "./Hydrant";
 export class Player extends Phaser.Physics.Arcade.Sprite
 {
 	private water: Water;
-	private hydrant: Hydrant;
+	// private hydrant: Hydrant;
 	private bubbleEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 	private inputKeys: InputKeySet;
 
@@ -68,14 +68,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 			this.setVelocityY(-600);
 		}
 
-		// actions
-		if (this.scene.physics.world.overlap(<any>this, <any>this.hydrant) 
-				&& this.inputKeys.F.isDown 
-				&& this.water.getWaterMovementDirection() == WaterMovementDirection.Up)
-		{
-			this.water.setWaterMovementDirection(WaterMovementDirection.Down);
-		}
-
 		// bubbles
 		if (playerInWater)
 		{
@@ -88,10 +80,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 		this.water = water;
 	}
 
-	public setHydrant(hydrant: Hydrant): void
+	/* public setHydrant(hydrant: Hydrant): void
 	{
 		this.hydrant = hydrant;
-	}
+	} */
 
 	public setBubbleEmitter(bubbleEmitter: Phaser.GameObjects.Particles.ParticleEmitter): void
 	{

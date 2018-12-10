@@ -20,6 +20,7 @@ var Hydrant = /** @class */ (function (_super) {
         _this.opened = false;
         scene.physics.add.sys.displayList.add(_this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
+        _this.disableBody(true, true);
         return _this;
     }
     Hydrant.prototype.isOpen = function () {

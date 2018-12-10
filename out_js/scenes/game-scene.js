@@ -24,9 +24,12 @@ var Hydrant_1 = require("../Hydrant");
 var GameScene = /** @class */ (function (_super) {
     __extends(GameScene, _super);
     function GameScene() {
-        return _super.call(this, {
+        var _this = _super.call(this, {
             key: "GameScene"
         }) || this;
+        _this.hydrantCount = 10;
+        _this.openHydrants = _this.hydrantCount;
+        return _this;
     }
     // Phaser scene functions
     /*
@@ -95,7 +98,16 @@ var GameScene = /** @class */ (function (_super) {
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
         // dead objects
         this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
-        this.hydrants = new Hydrant_1.Hydrant(this, this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+        this.hydrants = this.physics.add.staticGroup();
+        for (var i_1 = 0; i_1 < this.hydrantCount; ++i_1) {
+            var hydrant = new Hydrant_1.Hydrant(this, 0, 0, 'hydrant1');
+            this.hydrants.add(hydrant);
+        }
+        this.hydrantMen = this.physics.add.group();
+        for (var i_2 = 0; i_2 < this.hydrantCount; ++i_2) {
+            var randomX = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
+            this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+        }
         this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // alive objects
         this.player = new Player_1.Player(this, 0, 0, 'player');
@@ -117,7 +129,7 @@ var GameScene = /** @class */ (function (_super) {
         // loading game livings
         this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
         this.player.setWater(this.water);
-        this.player.setHydrant(this.hydrants);
+        // this.player.setHydrant(this.hydrants);
         this.player.setBubbleEmitter(this.bubblesEmitter);
         this.player.setInputKeySet(this.inputKeys);
         this.player.setBounce(0);
@@ -139,9 +151,10 @@ var GameScene = /** @class */ (function (_super) {
         this.aquarium.setPipeline('Light2D');
         this.aquarium.setWater(this.water);
         this.aquarium.setOctopus(this.octopus);
-        this.hydrants.open();
-        this.hydrants.setCollideWorldBounds(true);
-        this.hydrants.setPipeline('Light2D');
+        this.hydrants.getChildren().forEach(function (hydrant) {
+            hydrant.open();
+            hydrant.setPipeline('Light2D');
+        });
         // light
         this.lights.enable().setAmbientColor(0x000000);
         this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
@@ -205,6 +218,15 @@ var GameScene = /** @class */ (function (_super) {
         this.physics.add.collider(this.player, this.worldLayer);
         this.physics.add.collider(this.octopus, this.worldLayer);
         this.physics.add.collider(this.hydrants, this.worldLayer);
+        this.hydrantMen.getChildren().forEach(function (hMan, idx) {
+            var correspondingHydrant = _this.hydrants.getChildren()[idx];
+            _this.physics.add.collider(hMan, _this.worldLayer, function (hydrantMan, wl) {
+                _this.hydrantHydrantManCollide(correspondingHydrant, hydrantMan);
+            });
+            _this.physics.add.overlap(correspondingHydrant, _this.player, function (hydrant, player) {
+                _this.hydrantPlayerOverlap(hydrant, player);
+            });
+        });
         this.playerDropletsCollider = this.physics.add.collider(this.player, this.droplets);
         // camera
         this.mainCamera = this.cameras.main;
@@ -287,6 +309,22 @@ var GameScene = /** @class */ (function (_super) {
         console.log("Fuck!");
         //this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
         this.player.disableBody(true, true);
+    };
+    GameScene.prototype.hydrantHydrantManCollide = function (hydrant, hydrantMan) {
+        hydrant.enableBody(false, 0, 0, true, true);
+        hydrant.setPosition(hydrantMan.x, hydrantMan.y).refreshBody();
+        hydrantMan.disableBody(true, true);
+    };
+    GameScene.prototype.hydrantPlayerOverlap = function (hydrant, player) {
+        if (this.inputKeys.F.isDown
+            && hydrant.isOpen()
+            && this.water.getWaterMovementDirection() == Water_1.WaterMovementDirection.Up) {
+            hydrant.close();
+            this.openHydrants -= 1;
+            if (this.openHydrants == 0) {
+                this.water.setWaterMovementDirection(Water_1.WaterMovementDirection.Down);
+            }
+        }
     };
     return GameScene;
 }(Phaser.Scene));

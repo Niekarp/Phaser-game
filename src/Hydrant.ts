@@ -9,6 +9,8 @@ export class Hydrant extends Phaser.Physics.Arcade.Image
 
 		scene.physics.add.sys.displayList.add(this);
 		scene.physics.add.world.enableBody(this, Phaser.Physics.Arcade.STATIC_BODY);
+
+		this.disableBody(true, true);
 	}
 
 	public isOpen(): boolean
