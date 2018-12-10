@@ -13,6 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
+var Water_1 = require("./Water");
 var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
@@ -25,8 +26,7 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.scene.physics.world.overlap(this, this.water);
-        // console.log(playerInWater);
-        // player movement
+        // movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
                 this.setVelocityX(-600);
@@ -49,26 +49,32 @@ var Player = /** @class */ (function (_super) {
             this.setVelocityX(0);
             this.anims.play('turn');
         }
-        // player movement -> player jump
+        // movement -> jump
         if (this.inputKeys.W.isDown && this.body.blocked.down) {
             this.setVelocityY(-330);
         }
         else if (this.inputKeys.W.isDown && playerInWater) {
             this.setVelocityY(-600);
         }
-        /* // player actions
-        if (this.scene.physics.world.overlap(<any>this, <any>this.hydrants) && this.inputKeys.F.isDown && this.waterGoUp)
-        {
-            this.waterGoUp = false;
-        } */
-        /* // player bubbles
-        if (playerInWater)
-        {
-            this.bubblesEmitter.emitParticle();
-        } */
+        // actions
+        if (this.scene.physics.world.overlap(this, this.hydrant)
+            && this.inputKeys.F.isDown
+            && this.water.getWaterMovementDirection() == Water_1.WaterMovementDirection.Up) {
+            this.water.setWaterMovementDirection(Water_1.WaterMovementDirection.Down);
+        }
+        // bubbles
+        if (playerInWater) {
+            this.bubbleEmitter.emitParticle();
+        }
     };
     Player.prototype.setWater = function (water) {
         this.water = water;
+    };
+    Player.prototype.setHydrant = function (hydrant) {
+        this.hydrant = hydrant;
+    };
+    Player.prototype.setBubbleEmitter = function (bubbleEmitter) {
+        this.bubbleEmitter = bubbleEmitter;
     };
     Player.prototype.setInputKeySet = function (inputKeys) {
         this.inputKeys = inputKeys;

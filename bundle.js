@@ -45,6 +45,44 @@ exports.Aquarium = Aquarium;
 
 },{}],2:[function(require,module,exports){
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+exports.__esModule = true;
+var Hydrant = /** @class */ (function (_super) {
+    __extends(Hydrant, _super);
+    function Hydrant(scene, x, y, texture, frame) {
+        var _this = _super.call(this, scene, x, y, texture, frame) || this;
+        _this.opened = false;
+        scene.physics.add.sys.displayList.add(_this);
+        scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
+        return _this;
+    }
+    Hydrant.prototype.isOpen = function () {
+        return this.opened;
+    };
+    Hydrant.prototype.open = function () {
+        this.opened = true;
+    };
+    Hydrant.prototype.close = function () {
+        this.opened = false;
+    };
+    return Hydrant;
+}(Phaser.Physics.Arcade.Image));
+exports.Hydrant = Hydrant;
+
+},{}],3:[function(require,module,exports){
+"use strict";
 exports.__esModule = true;
 var InputKeySet = /** @class */ (function () {
     function InputKeySet(scene) {
@@ -61,7 +99,7 @@ var InputKeySet = /** @class */ (function () {
 }());
 exports.InputKeySet = InputKeySet;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -92,7 +130,7 @@ var LightStick = /** @class */ (function (_super) {
 }(Phaser.Physics.Arcade.Sprite));
 exports.LightStick = LightStick;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 exports.__esModule = true;
 var LightStick_1 = require("./LightStick");
@@ -156,7 +194,7 @@ var LightStickEmitter = /** @class */ (function () {
 }());
 exports.LightStickEmitter = LightStickEmitter;
 
-},{"./LightStick":3}],5:[function(require,module,exports){
+},{"./LightStick":4}],6:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -266,7 +304,7 @@ var Octopus = /** @class */ (function (_super) {
 }(Phaser.Physics.Arcade.Sprite));
 exports.Octopus = Octopus;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -282,6 +320,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
+var Water_1 = require("./Water");
 var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
@@ -294,8 +333,7 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.scene.physics.world.overlap(this, this.water);
-        // console.log(playerInWater);
-        // player movement
+        // movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
                 this.setVelocityX(-600);
@@ -318,26 +356,32 @@ var Player = /** @class */ (function (_super) {
             this.setVelocityX(0);
             this.anims.play('turn');
         }
-        // player movement -> player jump
+        // movement -> jump
         if (this.inputKeys.W.isDown && this.body.blocked.down) {
             this.setVelocityY(-330);
         }
         else if (this.inputKeys.W.isDown && playerInWater) {
             this.setVelocityY(-600);
         }
-        /* // player actions
-        if (this.scene.physics.world.overlap(<any>this, <any>this.hydrants) && this.inputKeys.F.isDown && this.waterGoUp)
-        {
-            this.waterGoUp = false;
-        } */
-        /* // player bubbles
-        if (playerInWater)
-        {
-            this.bubblesEmitter.emitParticle();
-        } */
+        // actions
+        if (this.scene.physics.world.overlap(this, this.hydrant)
+            && this.inputKeys.F.isDown
+            && this.water.getWaterMovementDirection() == Water_1.WaterMovementDirection.Up) {
+            this.water.setWaterMovementDirection(Water_1.WaterMovementDirection.Down);
+        }
+        // bubbles
+        if (playerInWater) {
+            this.bubbleEmitter.emitParticle();
+        }
     };
     Player.prototype.setWater = function (water) {
         this.water = water;
+    };
+    Player.prototype.setHydrant = function (hydrant) {
+        this.hydrant = hydrant;
+    };
+    Player.prototype.setBubbleEmitter = function (bubbleEmitter) {
+        this.bubbleEmitter = bubbleEmitter;
     };
     Player.prototype.setInputKeySet = function (inputKeys) {
         this.inputKeys = inputKeys;
@@ -346,7 +390,7 @@ var Player = /** @class */ (function (_super) {
 }(Phaser.Physics.Arcade.Sprite));
 exports.Player = Player;
 
-},{}],7:[function(require,module,exports){
+},{"./Water":8}],8:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -396,6 +440,9 @@ var Water = /** @class */ (function (_super) {
     Water.prototype.setWaterMovementDirection = function (newDirection) {
         this.waterMovementDirection = newDirection;
     };
+    Water.prototype.getWaterMovementDirection = function () {
+        return this.waterMovementDirection;
+    };
     Water.prototype.setWorldDimensions = function (dimensions) {
         this.worldDimensions = dimensions;
     };
@@ -403,7 +450,7 @@ var Water = /** @class */ (function (_super) {
 }(Phaser.Physics.Arcade.Image));
 exports.Water = Water;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 exports.__esModule = true;
 var WorldDimensions = /** @class */ (function () {
@@ -413,7 +460,7 @@ var WorldDimensions = /** @class */ (function () {
 }());
 exports.WorldDimensions = WorldDimensions;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 /// <reference path="../typescript_defs/phaser.d.ts"/>
 exports.__esModule = true;
@@ -437,7 +484,7 @@ var gameConfig = {
 };
 var game = new Phaser.Game(gameConfig);
 
-},{"./scenes/game-scene":10}],10:[function(require,module,exports){
+},{"./scenes/game-scene":11}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -460,6 +507,7 @@ var Player_1 = require("../Player");
 var InputKeySet_1 = require("../InputKeySet");
 var WorldDimensions_1 = require("../WorldDimensions");
 var Water_1 = require("../Water");
+var Hydrant_1 = require("../Hydrant");
 var GameScene = /** @class */ (function (_super) {
     __extends(GameScene, _super);
     function GameScene() {
@@ -468,29 +516,30 @@ var GameScene = /** @class */ (function (_super) {
         }) || this;
     }
     // Phaser scene functions
+    /*
+    _____          _                 _
+    |  __ \        | |               | |
+    | |__) | __ ___| | ___   __ _  __| |
+    |  ___/ '__/ _ \ |/ _ \ / _` |/ _` |
+    | |   | | |  __/ | (_) | (_| | (_| |
+    |_|   |_|  \___|_|\___/ \__,_|\__,_|
+                                        
+                                           
+    */
     GameScene.prototype.preload = function () {
         this.load.image("tiles", ["../assets/world_tails.png", "../assets/world_tails_n.png"]);
         this.load.tilemapTiledJSON("map", "../assets/game_map.json");
         this.load.image('background_planks', ['../assets/background_planks.png', '../assets/background_planks_n.png']);
-        this.load.image('aquarium1', ['../assets/aquarium_1.png', '../assets/aquarium_1_n.png']);
-        this.load.image('bubbles', '../assets/bubble_small.png');
-        this.load.image('lightstick', '../assets/lightstick.png');
         this.load.image('water', ['../assets/water.png', '../assets/water_n.png']);
+        this.load.image('aquarium1', ['../assets/aquarium_1.png', '../assets/aquarium_1_n.png']);
+        this.load.image('hydrant1', ['../assets/hydrant_1.png', '../assets/hydrant_1_n.png']);
+        this.load.image('lightstick', '../assets/lightstick.png');
+        this.load.image('bubbles', '../assets/bubble_small.png');
         this.load.image('droplet', ['../assets/droplet.png', '../assets/droplet_n.png']);
         this.load.image('foreground_glass', ['../assets/foreground_glass.png', '../assets/foreground_glass_n.png']);
         this.load.spritesheet({
-            key: 'hydrant',
-            url: '../assets/hydrant.png',
-            frameConfig: {
-                frameWidth: 62,
-                frameHeight: 101
-            }
-        });
-        //this.load.spritesheet('player', ['../assets/player_xd.png', '../assets/player_xd_n.png'], { frameWidth: 152, frameHeight: 89 });
-        this.load.spritesheet({
             key: 'player',
             url: '../assets/player_xd.png',
-            normalMap: '../assets/player_xd_n.png',
             frameConfig: {
                 frameWidth: 152,
                 frameHeight: 89
@@ -498,41 +547,65 @@ var GameScene = /** @class */ (function (_super) {
         });
         this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
     };
+    /*
+    _____                _
+    / ____|              | |
+   | |     _ __ ___  __ _| |_ ___
+   | |    | '__/ _ \/ _` | __/ _ \
+   | |____| | |  __/ (_| | ||  __/
+    \_____|_|  \___|\__,_|\__\___|
+                                  
+                                  
+    */
     GameScene.prototype.create = function () {
+        // === INITIAL CONFIGURATION ===
         var _this = this;
-        // === configure them ===
+        // configure world dimensions
         this.gameWorldDimensions = new WorldDimensions_1.WorldDimensions();
         this.gameWorldDimensions.worldWidth = 2080;
         this.gameWorldDimensions.worldHeight = 1280;
         this.gameWorldDimensions.worldCenterX = this.gameWorldDimensions.worldWidth / 2;
         this.gameWorldDimensions.worldCenterY = this.gameWorldDimensions.worldHeight / 2;
         this.gameWorldDimensions.groundHeight = 4 * 32;
+        // input
         this.inputKeys = new InputKeySet_1.InputKeySet(this);
-        // loading game world elements
+        this.inputKeys.addAllKeys();
+        this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
+        // ===
+        // === CREATING OBJECTS ===		
+        // background
         this.add.tileSprite(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight, 'background_planks')
             .setPipeline('Light2D');
-        // loading game map
+        //  game map
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
-        // === create objects ===
-        this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
+        // dead objects
         this.aquarium = new Aquarium_1.Aquarium(this, 1030, 800, 'aquarium1');
+        this.hydrants = new Hydrant_1.Hydrant(this, this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'hydrant1');
+        this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
+        // alive objects
         this.player = new Player_1.Player(this, 0, 0, 'player');
         this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
         this.water = new Water_1.Water(this, 0, 0, 'water');
+        // particles
+        var bubblesEmitterManager = this.add.particles('bubbles');
+        this.bubblesEmitter = bubblesEmitterManager.createEmitter({
+            speed: 60,
+            scale: { start: 1, end: 0 },
+            maxParticles: 10,
+            accelerationY: -400
+        });
+        // foreground
         this.add.image(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'foreground_glass')
             .setDisplaySize(this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
-        //.setPipeline('Light2D');
-        // input
-        this.inputKeys.addAllKeys();
-        // light
-        this.lights.enable().setAmbientColor(0x000000);
-        this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
-        this.octopusLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
+        // ===
+        // === INITIALIZE OBJECTS ===
         // loading game livings
         this.player.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY);
         this.player.setWater(this.water);
+        this.player.setHydrant(this.hydrants);
+        this.player.setBubbleEmitter(this.bubblesEmitter);
         this.player.setInputKeySet(this.inputKeys);
         this.player.setBounce(0);
         this.player.setCollideWorldBounds(true);
@@ -542,26 +615,6 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.setPlayer(this.player);
         this.octopus.body.allowGravity = false;
         this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
-        this.hydrants = this.physics.add.sprite(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 'hydrant');
-        this.hydrants.setCollideWorldBounds(true);
-        // particles
-        var bubblesEmitterManager = this.add.particles('bubbles');
-        this.bubblesEmitter = bubblesEmitterManager.createEmitter({
-            speed: 60,
-            scale: { start: 1, end: 0 },
-            maxParticles: 10,
-            accelerationY: -400
-        });
-        this.bubblesEmitter.startFollow(this.player);
-        this.bubblesEmitter.stop();
-        this.lightStickEmitter.bubbleEmitterManager = bubblesEmitterManager;
-        this.lightStickEmitter.bubbleEmitterConfig = {
-            speed: 10,
-            scale: { start: 0.5, end: 0 },
-            accelerationY: -400,
-            frequency: 400
-        };
-        this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // loading game world elements
         this.water.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight);
         this.water.setWaterHeightLimit(this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight - 100);
@@ -573,38 +626,44 @@ var GameScene = /** @class */ (function (_super) {
         this.aquarium.setPipeline('Light2D');
         this.aquarium.setWater(this.water);
         this.aquarium.setOctopus(this.octopus);
+        this.hydrants.open();
+        this.hydrants.setCollideWorldBounds(true);
+        this.hydrants.setPipeline('Light2D');
+        // light
+        this.lights.enable().setAmbientColor(0x000000);
+        this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
+        this.octopusLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
+        // particles
+        /* this.bubblesEmitter.setSpeed(60);
+        this.bubblesEmitter.setScale({ start: 1, end: 0 });
+        this.bubblesEmitter.maxParticles = 10;
+        this.bubblesEmitter.accelerationY = <Phaser.GameObjects.Particles.EmitterOp>{ propertyKey: 'accelerationY', propertyValue: -400 }; */
+        this.bubblesEmitter.startFollow(this.player);
+        this.bubblesEmitter.stop();
+        this.lightStickEmitter.bubbleEmitterManager = bubblesEmitterManager;
+        this.lightStickEmitter.bubbleEmitterConfig = {
+            speed: 10,
+            scale: { start: 0.5, end: 0 },
+            accelerationY: -400,
+            frequency: 400
+        };
+        this.octopus.setLightStickEmitter(this.lightStickEmitter);
         // particles --> droplets
         this.droplets = this.physics.add.group();
         for (var i = 0; i < 500; i++) {
             var randomX = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
-            var randomY = Phaser.Math.Between(0, this.gameWorldDimensions.worldHeight);
             var droplet = this.droplets.create(randomX, this.water.y, 'droplet');
-            // let droplet = this.physics.add.sprite(randomX, randomY, 'droplet');
-            // Enable physics for the droplet
-            // this.game.physics.p2.enable(droplet);
             droplet.setCollideWorldBounds(true);
-            // Add a force that slows down the droplet over time
-            droplet.setDamping(false); //).body.damping = 0.3;
+            droplet.setDamping(false);
             droplet.setMass(2);
             droplet.setBounce(1);
             droplet.setAlpha(0.3);
-            // droplet.setGravity(0, 1);
             droplet.setBlendMode(Phaser.BlendModes.ADD);
-            // This makes the collision body smaller so that the droplets can get
-            // really up close and goopy
-            droplet.setCircle(droplet.width * 0.3); //.body.setCircle(droplet.width * 0.3);
+            droplet.setCircle(droplet.width * 0.3);
             droplet.setPipeline('Light2D');
-            // Add the droplet to the fluid group
-            // droplet.setPipeline('Blur');
-            // (<any>droplet.body.allowGravity) = false;
         }
-        /* var blurShader = this.game.add.filter('Blur');
-        blurShader.blur = 32;
-        var threshShader = this.game.add.filter('Threshold');
-        this.fluid.filters = [ blurShader, threshShader ];
-        this.fluid.filterArea = this.game.camera.view; */
-        // Add WebGL shaders to "liquify" the droplets
-        // this.addShaders();
+        // ===
+        // === OTHER ===
         // animations
         this.anims.create({
             key: 'left',
@@ -627,47 +686,42 @@ var GameScene = /** @class */ (function (_super) {
             frameRate: 10,
             repeat: -1
         });
-        this.anims.create({
-            key: 'hydrant_turn',
-            frames: [{ key: 'hydrant', frame: 1 }]
-        });
         // collisions
         this.physics.world.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
         this.worldLayer.setCollisionByProperty({ collides: true });
         this.physics.add.collider(this.player, this.worldLayer);
         this.physics.add.collider(this.octopus, this.worldLayer);
-        //this.physics.add.collider(this.octopus, this.player);
         this.physics.add.collider(this.hydrants, this.worldLayer);
-        // this.physics.add.collider(this.droplets, this.worldLayer);
         this.playerDropletsCollider = this.physics.add.collider(this.player, this.droplets);
-        // this.physics.add.collider(this.water, this.droplets);
         // camera
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
         this.mainCamera.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
-        // keyboard
-        this.input.keyboard.on('keydown_SPACE', this.throwLightStick, this);
+        // ===
     };
+    /*
+    _    _           _       _
+    | |  | |         | |     | |
+    | |  | |_ __   __| | __ _| |_ ___
+    | |  | | '_ \ / _` |/ _` | __/ _ \
+    | |__| | |_) | (_| | (_| | ||  __/
+     \____/| .__/ \__,_|\__,_|\__\___|
+           | |
+           |_|
+                                  
+                                  
+    */
     GameScene.prototype.update = function (time, delta) {
         var _this = this;
-        // update lights
+        // lights
         this.playerLight.setPosition(this.player.x, this.player.y);
         this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
         // droplets
-        // console.log('water: ' + (this.water.y - (this.water.displayHeight / 2)));
         this.droplets.getChildren().forEach(function (d, i, arr) {
-            // console.log('droplet: ' + (d as Phaser.Physics.Arcade.Sprite).y);
             var droplet = d;
-            if (d.y > _this.water.y - (_this.water.displayHeight / 2)) {
-                // console.log('setVelocity');
-                // this.physics.accelerateTo(d, (d as Phaser.Physics.Arcade.Sprite).x, this.water.y - (this.water.displayHeight / 2), 450, 500, 500);
-                // (d as Phaser.Physics.Arcade.Sprite).setBlendMode(3);
+            if (droplet.y > _this.water.y - (_this.water.displayHeight / 2)) {
                 droplet.setVelocityY(-100);
             }
-            /* else
-            {
-                (d as Phaser.Physics.Arcade.Sprite).setVelocityY(0);
-            } */
             var dist = Phaser.Math.Distance.Between(_this.player.x, _this.player.y, droplet.x, droplet.y);
             if (dist < 100) {
                 if (droplet.x > _this.player.x) {
@@ -683,15 +737,11 @@ var GameScene = /** @class */ (function (_super) {
             }
         });
         if (this.player.y < this.water.y - (this.water.displayHeight / 2)) {
-            // this.playerDropletsCollider.destroy();
             this.playerDropletsCollider.active = false;
         }
         else {
             this.playerDropletsCollider.active = true;
-            // this.playerDropletsCollider = this.physics.add.collider(this.player, this.droplets);
         }
-        // hydrants
-        // this.hydrants.anims.play('hydrant_turn');		
         // update objects
         this.player.update(time, delta);
         this.water.update(time, delta);
@@ -699,6 +749,16 @@ var GameScene = /** @class */ (function (_super) {
         this.aquarium.update(time, delta);
         this.lightStickEmitter.update(time, delta);
     };
+    /*
+    ____  _   _
+    / __ \| | | |
+   | |  | | |_| |__   ___ _ __
+   | |  | | __| '_ \ / _ \ '__|
+   | |__| | |_| | | |  __/ |
+    \____/ \__|_| |_|\___|_|
+                               
+                                
+    */
     GameScene.prototype.throwLightStick = function () {
         var relativePlayerX = this.mainCamera.centerX;
         var relativePlayerY = this.mainCamera.centerY;
@@ -719,4 +779,4 @@ var GameScene = /** @class */ (function (_super) {
 }(Phaser.Scene));
 exports.GameScene = GameScene;
 
-},{"../Aquarium":1,"../InputKeySet":2,"../LightStickEmitter":4,"../Octopus":5,"../Player":6,"../Water":7,"../WorldDimensions":8}]},{},[9]);
+},{"../Aquarium":1,"../Hydrant":2,"../InputKeySet":3,"../LightStickEmitter":5,"../Octopus":6,"../Player":7,"../Water":8,"../WorldDimensions":9}]},{},[10]);

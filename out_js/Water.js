@@ -47,6 +47,9 @@ var Water = /** @class */ (function (_super) {
     Water.prototype.setWaterMovementDirection = function (newDirection) {
         this.waterMovementDirection = newDirection;
     };
+    Water.prototype.getWaterMovementDirection = function () {
+        return this.waterMovementDirection;
+    };
     Water.prototype.setWorldDimensions = function (dimensions) {
         this.worldDimensions = dimensions;
     };

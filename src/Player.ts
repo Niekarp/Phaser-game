@@ -1,9 +1,12 @@
 import { InputKeySet } from "./InputKeySet";
-import { Water } from "./Water";
+import { Water, WaterMovementDirection } from "./Water";
+import { Hydrant } from "./Hydrant";
 
 export class Player extends Phaser.Physics.Arcade.Sprite
 {
 	private water: Water;
+	private hydrant: Hydrant;
+	private bubbleEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 	private inputKeys: InputKeySet;
 
 	constructor (scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
@@ -20,9 +23,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 		super.update(time, delta);
 
 		const playerInWater: boolean = this.scene.physics.world.overlap(<any>this, <any>this.water);
-		// console.log(playerInWater);
 
-		// player movement
+		// movement
 		if (this.inputKeys.A.isDown)
 		{
 			if (playerInWater)
@@ -56,7 +58,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 			this.anims.play('turn');
 		}
 	
-			// player movement -> player jump
+			// movement -> jump
 		if (this.inputKeys.W.isDown && this.body.blocked.down)
 		{
 			this.setVelocityY(-330);
@@ -66,22 +68,34 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 			this.setVelocityY(-600);
 		}
 
-		/* // player actions
-		if (this.scene.physics.world.overlap(<any>this, <any>this.hydrants) && this.inputKeys.F.isDown && this.waterGoUp)
+		// actions
+		if (this.scene.physics.world.overlap(<any>this, <any>this.hydrant) 
+				&& this.inputKeys.F.isDown 
+				&& this.water.getWaterMovementDirection() == WaterMovementDirection.Up)
 		{
-			this.waterGoUp = false;
-		} */
+			this.water.setWaterMovementDirection(WaterMovementDirection.Down);
+		}
 
-		/* // player bubbles
+		// bubbles
 		if (playerInWater)
 		{
-			this.bubblesEmitter.emitParticle();
-		} */
+			this.bubbleEmitter.emitParticle();
+		}
 	}
 
 	public setWater(water: Water): void
 	{
 		this.water = water;
+	}
+
+	public setHydrant(hydrant: Hydrant): void
+	{
+		this.hydrant = hydrant;
+	}
+
+	public setBubbleEmitter(bubbleEmitter: Phaser.GameObjects.Particles.ParticleEmitter): void
+	{
+		this.bubbleEmitter = bubbleEmitter;
 	}
 
 	public setInputKeySet(inputKeys: InputKeySet)

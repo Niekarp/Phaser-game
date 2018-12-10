@@ -50,6 +50,11 @@ export class Water extends Phaser.Physics.Arcade.Image
 		this.waterMovementDirection = newDirection;
 	}
 
+	public getWaterMovementDirection(): WaterMovementDirection
+	{
+		return this.waterMovementDirection;
+	}
+
 	public setWorldDimensions(dimensions: WorldDimensions): void
 	{
 		this.worldDimensions = dimensions;

@@ -13,6 +13,7 @@
         "./src/LightStick.ts",
         "./src/Player.ts",
         "./src/InputKeySet.ts",
-        "./src/WorldDimensions.ts"
+        "./src/WorldDimensions.ts",
+        "./src/Hydrant.ts"
     ]
 }
