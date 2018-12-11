@@ -657,7 +657,6 @@ var GameScene = /** @class */ (function (_super) {
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
         // dead objects
-        this.aquarium = new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1');
         this.hydrants = this.physics.add.staticGroup();
         for (var i_1 = 0; i_1 < this.hydrantCount; ++i_1) {
             var hydrant = new Hydrant_1.Hydrant(this, 0, 0, 'hydrant1');
@@ -674,7 +673,6 @@ var GameScene = /** @class */ (function (_super) {
         this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // alive objects
         this.player = new Player_1.Player(this, 0, 0, 'player');
-        this.octopus = new Octopus_1.Octopus(this, 0, 0, 'octopus');
         this.water = new Water_1.Water(this, 0, 0, 'water');
         // particles
         var bubblesEmitterManager = this.add.particles('bubbles');
@@ -700,12 +698,6 @@ var GameScene = /** @class */ (function (_super) {
         this.player.setCollideWorldBounds(true);
         this.player.maxUnderwaterTime = 4000;
         this.player.onMaxUnderwaterTimeExceeded = function () { return _this.onMaxUnderwaterTimeExceeded(); };
-        this.octopus.setBounce(0);
-        this.octopus.setCollideWorldBounds(true);
-        this.octopus.setDefaultVelocity(300);
-        this.octopus.setPlayer(this.player);
-        this.octopus.body.allowGravity = false;
-        this.octopus.onPlayerCaught(function () { return _this.playerCaught(); });
         // loading game world elements
         this.water.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight);
         this.water.setWaterHeightLimit(this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight - 100);
@@ -714,9 +706,6 @@ var GameScene = /** @class */ (function (_super) {
         this.water.setDisplaySize(this.gameWorldDimensions.worldWidth, 0);
         this.water.alpha = 0.5;
         this.water.setPipeline('Light2D');
-        this.aquarium.setPipeline('Light2D');
-        this.aquarium.setWater(this.water);
-        this.aquarium.setOctopus(this.octopus);
         this.hydrants.getChildren().forEach(function (hydrant) {
             var waterEmitter = waterEmitterManager.createEmitter({
                 speed: 60,
@@ -733,7 +722,6 @@ var GameScene = /** @class */ (function (_super) {
         // light
         this.lights.enable().setAmbientColor(0x000000);
         this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
-        this.octopusLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
         // particles
         /* this.bubblesEmitter.setSpeed(60);
         this.bubblesEmitter.setScale({ start: 1, end: 0 });
@@ -749,7 +737,29 @@ var GameScene = /** @class */ (function (_super) {
             frequency: 400
         };
         this.lightStickEmitter.water = this.water;
-        this.octopus.setLightStickEmitter(this.lightStickEmitter);
+        // acquariums
+        this.aquariums = [
+            new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1'),
+            new Aquarium_1.Aquarium(this, 2400, 2800, 'aquarium1'),
+            new Aquarium_1.Aquarium(this, 2500, 2500, 'aquarium1'),
+            new Aquarium_1.Aquarium(this, 2300, 2200, 'aquarium1'),
+            new Aquarium_1.Aquarium(this, 2500, 3000, 'aquarium1'),
+        ];
+        this.aquariums.forEach(function (aquarium) {
+            var octopus = new Octopus_1.Octopus(_this, 0, 0, 'octopus');
+            octopus.setBounce(0);
+            octopus.setCollideWorldBounds(true);
+            octopus.setDefaultVelocity(300);
+            octopus.setPlayer(_this.player);
+            octopus.body.allowGravity = false;
+            octopus.onPlayerCaught(function () { return _this.playerCaught(); });
+            octopus.setLightStickEmitter(_this.lightStickEmitter);
+            octopus.light = _this.lights.addLight(_this.gameWorldDimensions.worldCenterX, _this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
+            _this.physics.add.collider(octopus, _this.worldLayer);
+            aquarium.setOctopus(octopus);
+            aquarium.setPipeline('Light2D');
+            aquarium.setWater(_this.water);
+        }, this);
         // particles --> droplets
         this.droplets = this.physics.add.group();
         for (var i = 0; i < this.dropletsCount; i++) {
@@ -790,7 +800,6 @@ var GameScene = /** @class */ (function (_super) {
         this.physics.world.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
         this.worldLayer.setCollisionByProperty({ collides: true });
         this.physics.add.collider(this.player, this.worldLayer);
-        this.physics.add.collider(this.octopus, this.worldLayer);
         this.physics.add.collider(this.hydrants, this.worldLayer);
         this.hydrantMen.getChildren().forEach(function (hMan, idx) {
             var correspondingHydrant = _this.hydrants.getChildren()[idx];
@@ -824,7 +833,9 @@ var GameScene = /** @class */ (function (_super) {
     GameScene.prototype.update = function (time, delta) {
         // lights
         this.playerLight.setPosition(this.player.x, this.player.y);
-        this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
+        this.aquariums.forEach(function (aquarium) {
+            aquarium.octopus.light.setPosition(aquarium.octopus.x, aquarium.octopus.y);
+        }, this);
         // droplets
         this.updateDroplets();
         this.checkPlayerOverDroplets();
@@ -832,8 +843,10 @@ var GameScene = /** @class */ (function (_super) {
         // update objects
         this.player.update(time, delta);
         this.water.update(time, delta);
-        this.octopus.update(time, delta);
-        this.aquarium.update(time, delta);
+        this.aquariums.forEach(function (aquarium) {
+            aquarium.update(time, delta);
+            aquarium.octopus.update(time, delta);
+        }, this);
         this.lightStickEmitter.update(time, delta);
         //ui
         this.underwaterTimeText.setText(this.player.underwaterTime.toString());
@@ -849,6 +862,7 @@ var GameScene = /** @class */ (function (_super) {
                                 
     */
     GameScene.prototype.throwLightStick = function () {
+        var _this = this;
         var relativePlayerX = this.mainCamera.centerX;
         var relativePlayerY = this.mainCamera.centerY;
         relativePlayerX += this.player.x - this.mainCamera.midPoint.x;
@@ -857,7 +871,9 @@ var GameScene = /** @class */ (function (_super) {
         var lightStick = this.lightStickEmitter["throw"](this.player.x, this.player.y, throwAngle);
         this.physics.add.collider(lightStick, this.worldLayer);
         //this.physics.add.collider(lightStick, this.player);
-        this.physics.add.collider(lightStick, this.octopus);
+        this.aquariums.forEach(function (aquarium) {
+            _this.physics.add.collider(lightStick, aquarium.octopus);
+        }, this);
     };
     GameScene.prototype.playerCaught = function () {
         console.log("Fuck!");

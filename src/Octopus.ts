@@ -9,6 +9,7 @@ export class Octopus extends Phaser.Physics.Arcade.Sprite
     public minLightStickDistance: number = 250;
     public minPlayerChaseDistance: number = 500;
     public onPlayerCaughtCallback: ()=>void;
+    public light: Phaser.GameObjects.Light;
 
     private released: boolean;
     private defaultVelocity: number = 10;

@@ -20,7 +20,7 @@ export class GameScene extends Phaser.Scene
 
 	// Game world elements
 	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;	
-	private aquarium: Aquarium;
+	private aquariums: Aquarium[];
 	private water: Water;
 	private hydrants: Phaser.Physics.Arcade.StaticGroup;
 	private hydrantMen: Phaser.Physics.Arcade.Group;
@@ -28,7 +28,6 @@ export class GameScene extends Phaser.Scene
 
 	// Game livings
 	private player: Player;
-	private octopus: Octopus;
 
 	// Game objects
 	private mainCamera: Phaser.Cameras.Scene2D.Camera;
@@ -40,7 +39,6 @@ export class GameScene extends Phaser.Scene
 
 	// Lights
 	private playerLight: Phaser.GameObjects.Light;
-	private octopusLight: Phaser.GameObjects.Light;
 
 	// Ui
 	private underwaterTimeText: Phaser.GameObjects.Text;
@@ -136,7 +134,6 @@ export class GameScene extends Phaser.Scene
 		this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
 
 		// dead objects
-		this.aquarium = new Aquarium(this, 1030, 970, 'aquarium1');
 		this.hydrants = this.physics.add.staticGroup();
 		for(let i: number = 0; i < this.hydrantCount; ++i)
 		{
@@ -160,7 +157,6 @@ export class GameScene extends Phaser.Scene
 
 		// alive objects
 		this.player = new Player(this, 0, 0, 'player');
-		this.octopus = new Octopus(this, 0, 0, 'octopus');
 		this.water = new Water(this, 0, 0, 'water');
 
 		// particles
@@ -190,14 +186,7 @@ export class GameScene extends Phaser.Scene
 		this.player.setBounce(0);
 		this.player.setCollideWorldBounds(true);
 		this.player.maxUnderwaterTime = 4000;
-		this.player.onMaxUnderwaterTimeExceeded = () => this.onMaxUnderwaterTimeExceeded();
-
-		this.octopus.setBounce(0);
-		this.octopus.setCollideWorldBounds(true);
-		this.octopus.setDefaultVelocity(300);
-		this.octopus.setPlayer(this.player);
-		(<any>this.octopus.body.allowGravity) = false;
-		this.octopus.onPlayerCaught(() => this.playerCaught());
+		this.player.onMaxUnderwaterTimeExceeded = () => this.onMaxUnderwaterTimeExceeded();	
 
 		// loading game world elements
 		this.water.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight);
@@ -207,10 +196,6 @@ export class GameScene extends Phaser.Scene
 		this.water.setDisplaySize(this.gameWorldDimensions.worldWidth, 0);
 		this.water.alpha = 0.5;
 		this.water.setPipeline('Light2D');
-
-		this.aquarium.setPipeline('Light2D');
-		this.aquarium.setWater(this.water);
-		this.aquarium.setOctopus(this.octopus);	
 
 		this.hydrants.getChildren().forEach((hydrant: Hydrant) => {
 			let waterEmitter = waterEmitterManager.createEmitter({
@@ -229,7 +214,6 @@ export class GameScene extends Phaser.Scene
 		// light
 		this.lights.enable().setAmbientColor(0x000000);
 		this.playerLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 200).setIntensity(0.5);
-		this.octopusLight = this.lights.addLight(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);
 
 		// particles
 		/* this.bubblesEmitter.setSpeed(60);
@@ -247,7 +231,33 @@ export class GameScene extends Phaser.Scene
 			frequency: 400,
 		};		
 		this.lightStickEmitter.water = this.water;
-		this.octopus.setLightStickEmitter(this.lightStickEmitter);
+
+		// acquariums
+		this.aquariums = [
+			new Aquarium(this, 1030, 970, 'aquarium1'),
+			new Aquarium(this, 2400, 2800, 'aquarium1'),
+			new Aquarium(this, 2500, 2500, 'aquarium1'),
+			new Aquarium(this, 2300, 2200, 'aquarium1'),
+			new Aquarium(this, 2500, 3000, 'aquarium1'),
+		];
+
+		this.aquariums.forEach((aquarium) => {			
+			let octopus = new Octopus(this, 0, 0, 'octopus');
+			octopus.setBounce(0);
+			octopus.setCollideWorldBounds(true);
+			octopus.setDefaultVelocity(300);
+			octopus.setPlayer(this.player);
+			(<any>octopus.body.allowGravity) = false;
+			octopus.onPlayerCaught(() => this.playerCaught());			
+			octopus.setLightStickEmitter(this.lightStickEmitter);
+			octopus.light = this.lights.addLight(this.gameWorldDimensions.worldCenterX,
+				this.gameWorldDimensions.worldCenterY, 150).setIntensity(0.5);			
+			this.physics.add.collider(octopus, this.worldLayer);
+
+			aquarium.setOctopus(octopus);			
+			aquarium.setPipeline('Light2D');
+			aquarium.setWater(this.water);
+		}, this);
 
 		// particles --> droplets
 		this.droplets = this.physics.add.group();
@@ -298,7 +308,6 @@ export class GameScene extends Phaser.Scene
 
 		this.worldLayer.setCollisionByProperty({ collides: true });
 		this.physics.add.collider(this.player, this.worldLayer);
-		this.physics.add.collider(this.octopus, this.worldLayer);
 		this.physics.add.collider(this.hydrants, this.worldLayer);
 		this.hydrantMen.getChildren().forEach((hMan, idx) => {
 			let correspondingHydrant = <Hydrant>this.hydrants.getChildren()[idx];
@@ -338,7 +347,9 @@ export class GameScene extends Phaser.Scene
 	{
 		// lights
 		this.playerLight.setPosition(this.player.x, this.player.y);
-		this.octopusLight.setPosition(this.octopus.x, this.octopus.y);
+		this.aquariums.forEach((aquarium) => {			
+			aquarium.octopus.light.setPosition(aquarium.octopus.x, aquarium.octopus.y);
+		}, this);
 
 		// droplets
 		this.updateDroplets();
@@ -348,8 +359,10 @@ export class GameScene extends Phaser.Scene
 		// update objects
 		this.player.update(time, delta);
 		this.water.update(time, delta);
-		this.octopus.update(time, delta);
-		this.aquarium.update(time, delta);
+		this.aquariums.forEach((aquarium) => {			
+			aquarium.update(time, delta);
+			aquarium.octopus.update(time, delta);
+		}, this);
 		this.lightStickEmitter.update(time, delta);
 
 		//ui
@@ -382,7 +395,9 @@ export class GameScene extends Phaser.Scene
 
 		this.physics.add.collider(lightStick, this.worldLayer);
 		//this.physics.add.collider(lightStick, this.player);
-		this.physics.add.collider(lightStick, this.octopus);
+		this.aquariums.forEach((aquarium)=> {
+			this.physics.add.collider(lightStick, aquarium.octopus);
+		}, this);
 	}
 
 	playerCaught(): void

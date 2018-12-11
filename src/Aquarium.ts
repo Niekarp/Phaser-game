@@ -3,7 +3,7 @@ import { Octopus } from "./Octopus";
 export class Aquarium extends Phaser.Physics.Arcade.Sprite
 {
     private water: Phaser.Physics.Arcade.Image;
-    private octopus: Octopus;
+    public octopus: Octopus;
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
     {
