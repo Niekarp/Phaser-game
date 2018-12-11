@@ -30,6 +30,8 @@ var GameScene = /** @class */ (function (_super) {
         _this.hydrantCount = 10;
         _this.openHydrants = _this.hydrantCount;
         _this.dropletsCount = 200;
+        _this.isOver = false;
+        _this.isOverText = null;
         return _this;
     }
     // Phaser scene functions
@@ -133,11 +135,11 @@ var GameScene = /** @class */ (function (_super) {
             this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1'); */
         }
         this.aquariums = [
-            new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1').setScale(0.5, 0.5),
-            new Aquarium_1.Aquarium(this, 2400, 2800, 'aquarium1').setScale(0.5, 0.5),
-            new Aquarium_1.Aquarium(this, 2500, 2500, 'aquarium1').setScale(0.5, 0.5),
-            new Aquarium_1.Aquarium(this, 2300, 2200, 'aquarium1').setScale(0.5, 0.5),
-            new Aquarium_1.Aquarium(this, 2500, 3000, 'aquarium1').setScale(0.5, 0.5),
+            new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1').setScale(0.4, 0.4),
+            new Aquarium_1.Aquarium(this, 2400, 2800, 'aquarium1').setScale(0.4, 0.4),
+            new Aquarium_1.Aquarium(this, 2500, 2500, 'aquarium1').setScale(0.4, 0.4),
+            new Aquarium_1.Aquarium(this, 2300, 2200, 'aquarium1').setScale(0.4, 0.4),
+            new Aquarium_1.Aquarium(this, 2500, 3000, 'aquarium1').setScale(0.4, 0.4),
         ];
         this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // alive objects
@@ -165,7 +167,7 @@ var GameScene = /** @class */ (function (_super) {
         this.player.setInputKeySet(this.inputKeys);
         this.player.setBounce(0);
         this.player.setCollideWorldBounds(true);
-        this.player.maxUnderwaterTime = 4000;
+        this.player.maxUnderwaterTime = 22000;
         this.player.onMaxUnderwaterTimeExceeded = function () { return _this.onMaxUnderwaterTimeExceeded(); };
         // loading game world elements
         this.water.setPosition(this.gameWorldDimensions.worldCenterX, this.gameWorldDimensions.worldHeight - this.gameWorldDimensions.groundHeight);
@@ -278,7 +280,9 @@ var GameScene = /** @class */ (function (_super) {
         this.mainCamera.startFollow(this.player);
         this.mainCamera.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
         // ui
-        this.underwaterTimeText = this.add.text(16, 16, '0', { fontSize: '32px', fill: '#0f0' });
+        this.underwaterTimeText = this.add.text(0, 0, '0', { fontSize: '32px', fill: '#0f0' });
+        this.hydrantCountText = this.add.text(0, 0, '0', { fontSize: '32px', fill: '#0f0' });
+        this.isOverDisplayText = this.add.text(-50, -50, '0', { fontSize: '32px', fill: '#0f0' });
         this.sound.play('music');
     };
     /*
@@ -312,7 +316,7 @@ var GameScene = /** @class */ (function (_super) {
         }, this);
         this.lightStickEmitter.update(time, delta);
         //ui
-        this.underwaterTimeText.setText(this.player.underwaterTime.toString());
+        this.updateUI();
     };
     /*
     ____  _   _
@@ -342,6 +346,8 @@ var GameScene = /** @class */ (function (_super) {
         console.log("Fuck!");
         //this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
         this.player.disableBody(true, true);
+        this.isOver = true;
+        this.isOverText = "Ahh te ośmiornice";
     };
     GameScene.prototype.hydrantHydrantManCollide = function (hydrant, hydrantMan) {
         hydrant.enableBody(false, 0, 0, true, true);
@@ -356,6 +362,8 @@ var GameScene = /** @class */ (function (_super) {
             this.openHydrants -= 1;
             if (this.openHydrants == 0) {
                 this.water.setWaterMovementDirection(Water_1.WaterMovementDirection.Down);
+                this.isOver = true;
+                this.isOverText = "Wygrałeś, gratulacje";
             }
         }
     };
@@ -413,6 +421,41 @@ var GameScene = /** @class */ (function (_super) {
         console.log("Bul bul bul!");
         //this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
         this.player.disableBody(true, true);
+        this.isOver = true;
+        this.isOverText = 'Zdarza sie utonąć';
+    };
+    GameScene.prototype.updateUI = function () {
+        var textX = 0;
+        var textY = 0;
+        if (this.player.x > this.gameWorldDimensions.worldWidth - (this.mainCamera.displayWidth / 2)) {
+            textX = this.gameWorldDimensions.worldWidth - this.mainCamera.displayWidth + 16;
+        }
+        else if (this.player.x > this.mainCamera.displayWidth / 2) {
+            textX = this.player.x - (this.mainCamera.displayWidth / 2) + 16;
+        }
+        else {
+            textX = 16;
+        }
+        if (this.player.y > this.gameWorldDimensions.worldHeight - (this.mainCamera.displayHeight / 2)) {
+            textY = this.gameWorldDimensions.worldHeight - this.mainCamera.displayHeight + 16;
+        }
+        else if (this.player.y > this.mainCamera.y / 2) {
+            textY = this.player.y - (this.mainCamera.displayHeight / 2) + 16;
+        }
+        else {
+            textY = 16;
+        }
+        // oxy
+        this.underwaterTimeText.setText('Tlen: ' + this.player.getUnderwaterTimeLeft() + "%");
+        this.underwaterTimeText.setPosition(textX, textY);
+        // hydrants
+        this.hydrantCountText.setText('Hydranty: ' + this.openHydrants + '/' + this.hydrantCount);
+        this.hydrantCountText.setPosition(textX, textY + 50);
+        // game
+        if (this.isOver) {
+            this.isOverDisplayText.setText(this.isOverText);
+            this.isOverDisplayText.setPosition(this.player.x, this.player.y - this.player.displayHeight);
+        }
     };
     return GameScene;
 }(Phaser.Scene));

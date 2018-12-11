@@ -4,7 +4,7 @@ import { Hydrant } from "./Hydrant";
 
 export class Player extends Phaser.Physics.Arcade.Sprite
 {
-	public maxUnderwaterTime: number = 4000;	
+	public maxUnderwaterTime: number = 10000;	
 	public underwaterTime: number = 0;
 	public onMaxUnderwaterTimeExceeded: ()=>void;
 
@@ -136,5 +136,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 	public setInputKeySet(inputKeys: InputKeySet)
 	{
 		this.inputKeys = inputKeys;
+	}
+
+	public getUnderwaterTimeLeft(): string
+	{
+		let leftTime: string = (100 - (this.underwaterTime / this.maxUnderwaterTime * 100)).toString().slice(0, 3);
+		return leftTime;
 	}
 }

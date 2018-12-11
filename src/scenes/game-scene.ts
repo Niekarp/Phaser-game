@@ -17,6 +17,8 @@ export class GameScene extends Phaser.Scene
 	private openHydrants: number = this.hydrantCount;
 	private dropletsCount: number = 200;
 	private dropletsVisible: boolean;
+	private isOver: boolean = false;
+	private isOverText: string = null;
 
 	// Game world elements
 	private worldLayer: Phaser.Tilemaps.StaticTilemapLayer;	
@@ -42,6 +44,8 @@ export class GameScene extends Phaser.Scene
 
 	// Ui
 	private underwaterTimeText: Phaser.GameObjects.Text;
+	private hydrantCountText: Phaser.GameObjects.Text;
+	private isOverDisplayText: Phaser.GameObjects.Text;
 
 	constructor()
 	{
@@ -177,11 +181,11 @@ export class GameScene extends Phaser.Scene
 			this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1'); */
 		}
 		this.aquariums = [
-			new Aquarium(this, 1030, 970, 'aquarium1').setScale(0.5, 0.5),
-			new Aquarium(this, 2400, 2800, 'aquarium1').setScale(0.5, 0.5),
-			new Aquarium(this, 2500, 2500, 'aquarium1').setScale(0.5, 0.5),
-			new Aquarium(this, 2300, 2200, 'aquarium1').setScale(0.5, 0.5),
-			new Aquarium(this, 2500, 3000, 'aquarium1').setScale(0.5, 0.5),
+			new Aquarium(this, 1030, 970, 'aquarium1').setScale(0.4, 0.4),
+			new Aquarium(this, 2400, 2800, 'aquarium1').setScale(0.4, 0.4),
+			new Aquarium(this, 2500, 2500, 'aquarium1').setScale(0.4, 0.4),
+			new Aquarium(this, 2300, 2200, 'aquarium1').setScale(0.4, 0.4),
+			new Aquarium(this, 2500, 3000, 'aquarium1').setScale(0.4, 0.4),
 		];
 		this.lightStickEmitter = new LightStickEmitter(this, 'lightstick');
 
@@ -215,7 +219,7 @@ export class GameScene extends Phaser.Scene
 		this.player.setInputKeySet(this.inputKeys);
 		this.player.setBounce(0);
 		this.player.setCollideWorldBounds(true);
-		this.player.maxUnderwaterTime = 4000;
+		this.player.maxUnderwaterTime = 22000;
 		this.player.onMaxUnderwaterTimeExceeded = () => this.onMaxUnderwaterTimeExceeded();	
 
 		// loading game world elements
@@ -350,7 +354,9 @@ export class GameScene extends Phaser.Scene
 		this.mainCamera.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
 
 		// ui
-		this.underwaterTimeText = this.add.text(16, 16, '0', { fontSize: '32px', fill: '#0f0' });
+		this.underwaterTimeText = this.add.text(0, 0, '0', { fontSize: '32px', fill: '#0f0' });
+		this.hydrantCountText = this.add.text(0, 0, '0', { fontSize: '32px', fill: '#0f0' } );
+		this.isOverDisplayText = this.add.text(-50, -50, '0', { fontSize: '32px', fill: '#0f0' } );
 
 		this.sound.play('music');
 	}
@@ -390,7 +396,7 @@ export class GameScene extends Phaser.Scene
 		this.lightStickEmitter.update(time, delta);
 
 		//ui
-		this.underwaterTimeText.setText(this.player.underwaterTime.toString());
+		this.updateUI();
 	}
 
 	/* 
@@ -429,6 +435,9 @@ export class GameScene extends Phaser.Scene
 		console.log("Fuck!");
 		//this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
 		this.player.disableBody(true, true);
+
+		this.isOver = true;
+		this.isOverText = "Ahh te ośmiornice";
 	}
 
 	hydrantHydrantManCollide(hydrant: Hydrant, hydrantMan: Phaser.Physics.Arcade.Image): void
@@ -450,6 +459,8 @@ export class GameScene extends Phaser.Scene
 			if (this.openHydrants == 0)
 			{
 				this.water.setWaterMovementDirection(WaterMovementDirection.Down);
+				this.isOver = true;
+				this.isOverText = "Wygrałeś, gratulacje";
 			}
 		}
 	}
@@ -529,5 +540,52 @@ export class GameScene extends Phaser.Scene
 		console.log("Bul bul bul!");
 		//this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
 		this.player.disableBody(true, true);
+		this.isOver = true;
+		this.isOverText = 'Zdarza sie utonąć';
+	}
+
+	updateUI()
+	{
+		let textX: number = 0;
+		let textY: number = 0;
+		if (this.player.x > this.gameWorldDimensions.worldWidth - (this.mainCamera.displayWidth / 2))
+		{
+			textX = this.gameWorldDimensions.worldWidth -  this.mainCamera.displayWidth + 16;
+		}
+		else if (this.player.x > this.mainCamera.displayWidth / 2)
+		{
+			textX = this.player.x - (this.mainCamera.displayWidth / 2) + 16
+		}
+		else
+		{
+			textX = 16;
+		}
+
+		if (this.player.y > this.gameWorldDimensions.worldHeight - (this.mainCamera.displayHeight / 2))
+		{
+			textY = this.gameWorldDimensions.worldHeight -  this.mainCamera.displayHeight + 16;
+		}
+		else if (this.player.y > this.mainCamera.y / 2)
+		{
+			textY = this.player.y - (this.mainCamera.displayHeight / 2) + 16
+		}
+		else
+		{
+			textY = 16;
+		}
+		// oxy
+		this.underwaterTimeText.setText('Tlen: ' + this.player.getUnderwaterTimeLeft() + "%");
+		this.underwaterTimeText.setPosition(textX, textY);
+
+		// hydrants
+		this.hydrantCountText.setText('Hydranty: ' + this.openHydrants + '/' + this.hydrantCount);
+		this.hydrantCountText.setPosition(textX, textY + 50);
+
+		// game
+		if (this.isOver)
+		{
+			this.isOverDisplayText.setText(this.isOverText);
+			this.isOverDisplayText.setPosition(this.player.x, this.player.y - this.player.displayHeight);
+		}
 	}
 }

@@ -17,7 +17,7 @@ var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
-        _this.maxUnderwaterTime = 4000;
+        _this.maxUnderwaterTime = 10000;
         _this.underwaterTime = 0;
         _this.onMaxUnderwaterTimeExceededCalled = false;
         // private hydrant: Hydrant;
@@ -106,6 +106,10 @@ var Player = /** @class */ (function (_super) {
     };
     Player.prototype.setInputKeySet = function (inputKeys) {
         this.inputKeys = inputKeys;
+    };
+    Player.prototype.getUnderwaterTimeLeft = function () {
+        var leftTime = (100 - (this.underwaterTime / this.maxUnderwaterTime * 100)).toString().slice(0, 3);
+        return leftTime;
     };
     return Player;
 }(Phaser.Physics.Arcade.Sprite));
