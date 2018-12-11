@@ -333,7 +333,7 @@ export class GameScene extends Phaser.Scene
 		this.physics.world.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
 
 		this.worldLayer.setCollisionByProperty({ collides: true });
-		this.physics.add.collider(this.player, this.worldLayer);
+		this.physics.add.collider(this.player, this.worldLayer);	
 		this.physics.add.collider(this.hydrants, this.worldLayer);
 		this.hydrantMen.getChildren().forEach((hMan, idx) => {
 			let correspondingHydrant = <Hydrant>this.hydrants.getChildren()[idx];
