@@ -12,6 +12,7 @@ export class Water extends Phaser.Physics.Arcade.Image
 	private waterHeightLimit: number;
 	private waterMovementDirection: WaterMovementDirection;
 	private worldDimensions: WorldDimensions;
+	private airSprite: Phaser.GameObjects.Sprite;
 
 	constructor (scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number | string)
 	{
@@ -20,6 +21,9 @@ export class Water extends Phaser.Physics.Arcade.Image
 		scene.physics.add.sys.displayList.add(this);
 		// scene.physics.add.sys.updateList.add(this);
 		scene.physics.add.world.enableBody(this, Phaser.Physics.Arcade.STATIC_BODY);
+
+		this.airSprite = scene.physics.add.staticSprite(0, 0, 'texture', frame);
+		this.airSprite.alpha = 0;
 	}
 
 	public update(time: number, delta: number): void
@@ -38,6 +42,18 @@ export class Water extends Phaser.Physics.Arcade.Image
 			this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
 		}
 		this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.worldHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
+	}
+
+	public setPosition(x?: number, y?: number, z?: number, w?: number): this
+	{
+		super.setPosition(x, y, z, w);
+
+		if(this.airSprite)
+		{
+			this.airSprite.setPosition(x, y, z, w);
+		}
+
+		return this;
 	}
 
 	public setWaterHeightLimit(newLimit: number): void

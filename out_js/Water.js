@@ -26,6 +26,8 @@ var Water = /** @class */ (function (_super) {
         scene.physics.add.sys.displayList.add(_this);
         // scene.physics.add.sys.updateList.add(this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
+        _this.airSprite = scene.physics.add.staticSprite(0, 0, 'texture', frame);
+        _this.airSprite.alpha = 0;
         return _this;
     }
     Water.prototype.update = function (time, delta) {
@@ -40,6 +42,13 @@ var Water = /** @class */ (function (_super) {
             this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
         }
         this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.worldHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
+    };
+    Water.prototype.setPosition = function (x, y, z, w) {
+        _super.prototype.setPosition.call(this, x, y, z, w);
+        if (this.airSprite) {
+            this.airSprite.setPosition(x, y, z, w);
+        }
+        return this;
     };
     Water.prototype.setWaterHeightLimit = function (newLimit) {
         this.waterHeightLimit = newLimit;

@@ -353,6 +353,9 @@ var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
+        _this.maxUnderwaterTime = 4000;
+        _this.underwaterTime = 0;
+        _this.onMaxUnderwaterTimeExceededCalled = false;
         // private hydrant: Hydrant;
         _this.doubleJump = false;
         scene.physics.add.sys.displayList.add(_this);
@@ -363,6 +366,22 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.water.objectInWater(this);
+        if (playerInWater) {
+            this.underwaterTime += delta;
+            if (this.underwaterTime > this.maxUnderwaterTime
+                && this.onMaxUnderwaterTimeExceeded
+                && !this.onMaxUnderwaterTimeExceededCalled) {
+                this.onMaxUnderwaterTimeExceeded();
+                this.onMaxUnderwaterTimeExceededCalled = true;
+            }
+        }
+        else {
+            this.onMaxUnderwaterTimeExceededCalled = false;
+            this.underwaterTime -= delta;
+            if (this.underwaterTime < 0) {
+                this.underwaterTime = 0;
+            }
+        }
         // movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
@@ -457,6 +476,8 @@ var Water = /** @class */ (function (_super) {
         scene.physics.add.sys.displayList.add(_this);
         // scene.physics.add.sys.updateList.add(this);
         scene.physics.add.world.enableBody(_this, Phaser.Physics.Arcade.STATIC_BODY);
+        _this.airSprite = scene.physics.add.staticSprite(0, 0, 'texture', frame);
+        _this.airSprite.alpha = 0;
         return _this;
     }
     Water.prototype.update = function (time, delta) {
@@ -471,6 +492,13 @@ var Water = /** @class */ (function (_super) {
             this.setDisplaySize(this.displayWidth, this.displayHeight - 1).refreshBody();
         }
         this.setPosition(this.worldDimensions.worldCenterX, this.worldDimensions.worldHeight - this.worldDimensions.groundHeight - (this.displayHeight / 2));
+    };
+    Water.prototype.setPosition = function (x, y, z, w) {
+        _super.prototype.setPosition.call(this, x, y, z, w);
+        if (this.airSprite) {
+            this.airSprite.setPosition(x, y, z, w);
+        }
+        return this;
     };
     Water.prototype.setWaterHeightLimit = function (newLimit) {
         this.waterHeightLimit = newLimit;
@@ -670,6 +698,8 @@ var GameScene = /** @class */ (function (_super) {
         this.player.setInputKeySet(this.inputKeys);
         this.player.setBounce(0);
         this.player.setCollideWorldBounds(true);
+        this.player.maxUnderwaterTime = 4000;
+        this.player.onMaxUnderwaterTimeExceeded = function () { return _this.onMaxUnderwaterTimeExceeded(); };
         this.octopus.setBounce(0);
         this.octopus.setCollideWorldBounds(true);
         this.octopus.setDefaultVelocity(300);
@@ -776,7 +806,8 @@ var GameScene = /** @class */ (function (_super) {
         this.mainCamera = this.cameras.main;
         this.mainCamera.startFollow(this.player);
         this.mainCamera.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
-        // ===
+        // ui
+        this.underwaterTimeText = this.add.text(16, 16, '0', { fontSize: '32px', fill: '#0f0' });
     };
     /*
     _    _           _       _
@@ -804,6 +835,8 @@ var GameScene = /** @class */ (function (_super) {
         this.octopus.update(time, delta);
         this.aquarium.update(time, delta);
         this.lightStickEmitter.update(time, delta);
+        //ui
+        this.underwaterTimeText.setText(this.player.underwaterTime.toString());
     };
     /*
     ____  _   _
@@ -896,6 +929,11 @@ var GameScene = /** @class */ (function (_super) {
             });
             this.dropletsVisible = true;
         }
+    };
+    GameScene.prototype.onMaxUnderwaterTimeExceeded = function () {
+        console.log("Bul bul bul!");
+        //this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
+        this.player.disableBody(true, true);
     };
     return GameScene;
 }(Phaser.Scene));

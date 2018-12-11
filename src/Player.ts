@@ -4,6 +4,12 @@ import { Hydrant } from "./Hydrant";
 
 export class Player extends Phaser.Physics.Arcade.Sprite
 {
+	public maxUnderwaterTime: number = 4000;	
+	public underwaterTime: number = 0;
+	public onMaxUnderwaterTimeExceeded: ()=>void;
+
+	private onMaxUnderwaterTimeExceededCalled: boolean = false;
+
 	private water: Water;
 	// private hydrant: Hydrant;
 	private doubleJump: boolean = false;
@@ -24,6 +30,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 		super.update(time, delta);
 
 		const playerInWater = this.water.objectInWater(this);
+
+		if(playerInWater)
+		{
+			this.underwaterTime += delta;
+			if(this.underwaterTime > this.maxUnderwaterTime
+				&& this.onMaxUnderwaterTimeExceeded 
+				&& !this.onMaxUnderwaterTimeExceededCalled)
+			{
+				this.onMaxUnderwaterTimeExceeded();
+				this.onMaxUnderwaterTimeExceededCalled = true;
+			}
+		}
+		else
+		{	
+			this.onMaxUnderwaterTimeExceededCalled = false;		
+			this.underwaterTime -= delta;
+			if(this.underwaterTime < 0)
+			{
+				this.underwaterTime = 0;
+			}
+		}
 
 		// movement
 		if (this.inputKeys.A.isDown)

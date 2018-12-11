@@ -42,6 +42,9 @@ export class GameScene extends Phaser.Scene
 	private playerLight: Phaser.GameObjects.Light;
 	private octopusLight: Phaser.GameObjects.Light;
 
+	// Ui
+	private underwaterTimeText: Phaser.GameObjects.Text;
+
 	constructor()
 	{
 		super(
@@ -186,6 +189,8 @@ export class GameScene extends Phaser.Scene
 		this.player.setInputKeySet(this.inputKeys);
 		this.player.setBounce(0);
 		this.player.setCollideWorldBounds(true);
+		this.player.maxUnderwaterTime = 4000;
+		this.player.onMaxUnderwaterTimeExceeded = () => this.onMaxUnderwaterTimeExceeded();
 
 		this.octopus.setBounce(0);
 		this.octopus.setCollideWorldBounds(true);
@@ -313,7 +318,8 @@ export class GameScene extends Phaser.Scene
 		this.mainCamera.startFollow(this.player);
 		this.mainCamera.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
 
-		// ===
+		// ui
+		this.underwaterTimeText = this.add.text(16, 16, '0', { fontSize: '32px', fill: '#0f0' });
 	}
 
 	/*
@@ -345,6 +351,9 @@ export class GameScene extends Phaser.Scene
 		this.octopus.update(time, delta);
 		this.aquarium.update(time, delta);
 		this.lightStickEmitter.update(time, delta);
+
+		//ui
+		this.underwaterTimeText.setText(this.player.underwaterTime.toString());
 	}
 
 	/* 
@@ -474,5 +483,12 @@ export class GameScene extends Phaser.Scene
 			});
 			this.dropletsVisible = true;
 		}
+	}
+
+	onMaxUnderwaterTimeExceeded()
+	{
+		console.log("Bul bul bul!");
+		//this.player.setTint(Phaser.Math.Between(0x7f7f7f, 0xffffff));
+		this.player.disableBody(true, true);
 	}
 }

@@ -17,6 +17,9 @@ var Player = /** @class */ (function (_super) {
     __extends(Player, _super);
     function Player(scene, x, y, texture, frame) {
         var _this = _super.call(this, scene, x, y, texture, frame) || this;
+        _this.maxUnderwaterTime = 4000;
+        _this.underwaterTime = 0;
+        _this.onMaxUnderwaterTimeExceededCalled = false;
         // private hydrant: Hydrant;
         _this.doubleJump = false;
         scene.physics.add.sys.displayList.add(_this);
@@ -27,6 +30,22 @@ var Player = /** @class */ (function (_super) {
     Player.prototype.update = function (time, delta) {
         _super.prototype.update.call(this, time, delta);
         var playerInWater = this.water.objectInWater(this);
+        if (playerInWater) {
+            this.underwaterTime += delta;
+            if (this.underwaterTime > this.maxUnderwaterTime
+                && this.onMaxUnderwaterTimeExceeded
+                && !this.onMaxUnderwaterTimeExceededCalled) {
+                this.onMaxUnderwaterTimeExceeded();
+                this.onMaxUnderwaterTimeExceededCalled = true;
+            }
+        }
+        else {
+            this.onMaxUnderwaterTimeExceededCalled = false;
+            this.underwaterTime -= delta;
+            if (this.underwaterTime < 0) {
+                this.underwaterTime = 0;
+            }
+        }
         // movement
         if (this.inputKeys.A.isDown) {
             if (playerInWater) {
