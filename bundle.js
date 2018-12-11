@@ -604,10 +604,15 @@ var GameScene = /** @class */ (function (_super) {
     */
     GameScene.prototype.preload = function () {
         this.load.image("tiles", ["../assets/world_tails.png", "../assets/world_tails_n.png"]);
+        /* this.load.image('wall', ['../assets/wall2', '../assets/wall2_n.png']);
+        this.load.image('scifi', ['../assets/scifi_platformTiles_32x32.png', '../assets/scifi_platformTiles_32x32_n.png']);
+        this.load.image('phase', ['../assets/phase-2.png', '../assets/phase-2_n.png']);
+        this.load.image('industry', ['../assets/minimal_industry.png', '../assets/minimal_industry_n.png']);
+        this.load.image('house', ['../assets/BrickHouse.png', '../assets/BrickHouse_n.png']); */
         this.load.tilemapTiledJSON("map", "../assets/game_map.json");
         this.load.image('background_planks', ['../assets/background_planks.png', '../assets/background_planks_n.png']);
         this.load.image('water', ['../assets/water.png', '../assets/water_n.png']);
-        this.load.image('aquarium1', ['../assets/aquarium_1.png', '../assets/aquarium_1_n.png']);
+        this.load.image('aquarium1', ['../assets/aquarium.png', '../assets/aquarium_n.png']);
         this.load.image('hydrant1', ['../assets/hydrant_1.png', '../assets/hydrant_1_n.png']);
         this.load.image('lightstick', '../assets/lightstick.png');
         this.load.image('bubbles', '../assets/bubble_small.png');
@@ -622,6 +627,7 @@ var GameScene = /** @class */ (function (_super) {
             }
         });
         this.load.spritesheet('octopus', '../assets/octopus.png', { frameWidth: 180, frameHeight: 210 });
+        this.load.audio('music', '../assets/music.mp3');
     };
     /*
     _____                _
@@ -656,6 +662,21 @@ var GameScene = /** @class */ (function (_super) {
         var map = this.make.tilemap({ key: "map" });
         var tileset = map.addTilesetImage("world_tails", "tiles");
         this.worldLayer = map.createStaticLayer("World", tileset, 0, 0).setPipeline('Light2D');
+        /* tileset = map.addTilesetImage('minimal_industry', 'industry');
+        map.createStaticLayer("WorldBackground", tileset, 0, 0).setPipeline('Light2D');
+
+        tileset = map.addTilesetImage('phase-2', 'phase');
+        map.createStaticLayer("WorldBackground", tileset, 0, 0).setPipeline('Light2D');
+
+        tileset = map.addTilesetImage('wall2', 'wall');
+        map.createStaticLayer("WorldBackground", tileset, 0, 0).setPipeline('Light2D');
+
+        tileset = map.addTilesetImage('scifi_platformTiles_32x32', 'scifi');
+        map.createStaticLayer("WorldBackground", tileset, 0, 0).setPipeline('Light2D');
+
+        tileset = map.addTilesetImage('BrickHouse', 'house');
+        map.createStaticLayer("WorldBackground", tileset, 0, 0).setPipeline('Light2D'); */
+        // let worldBackgroundLayer = map.createStaticLayer("WorldBackground", tileset, 0, 0).setPipeline('Light2D');
         // dead objects
         this.hydrants = this.physics.add.staticGroup();
         for (var i_1 = 0; i_1 < this.hydrantCount; ++i_1) {
@@ -670,6 +691,13 @@ var GameScene = /** @class */ (function (_super) {
             /* let randomX: number = Phaser.Math.Between(0, this.gameWorldDimensions.worldWidth);
             this.hydrantMen.create(randomX, this.gameWorldDimensions.worldCenterY, 'hydrant1'); */
         }
+        this.aquariums = [
+            new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1').setScale(0.5, 0.5),
+            new Aquarium_1.Aquarium(this, 2400, 2800, 'aquarium1').setScale(0.5, 0.5),
+            new Aquarium_1.Aquarium(this, 2500, 2500, 'aquarium1').setScale(0.5, 0.5),
+            new Aquarium_1.Aquarium(this, 2300, 2200, 'aquarium1').setScale(0.5, 0.5),
+            new Aquarium_1.Aquarium(this, 2500, 3000, 'aquarium1').setScale(0.5, 0.5),
+        ];
         this.lightStickEmitter = new LightStickEmitter_1.LightStickEmitter(this, 'lightstick');
         // alive objects
         this.player = new Player_1.Player(this, 0, 0, 'player');
@@ -738,13 +766,6 @@ var GameScene = /** @class */ (function (_super) {
         };
         this.lightStickEmitter.water = this.water;
         // acquariums
-        this.aquariums = [
-            new Aquarium_1.Aquarium(this, 1030, 970, 'aquarium1'),
-            new Aquarium_1.Aquarium(this, 2400, 2800, 'aquarium1'),
-            new Aquarium_1.Aquarium(this, 2500, 2500, 'aquarium1'),
-            new Aquarium_1.Aquarium(this, 2300, 2200, 'aquarium1'),
-            new Aquarium_1.Aquarium(this, 2500, 3000, 'aquarium1'),
-        ];
         this.aquariums.forEach(function (aquarium) {
             var octopus = new Octopus_1.Octopus(_this, 0, 0, 'octopus');
             octopus.setBounce(0);
@@ -817,6 +838,7 @@ var GameScene = /** @class */ (function (_super) {
         this.mainCamera.setBounds(0, 0, this.gameWorldDimensions.worldWidth, this.gameWorldDimensions.worldHeight);
         // ui
         this.underwaterTimeText = this.add.text(16, 16, '0', { fontSize: '32px', fill: '#0f0' });
+        this.sound.play('music');
     };
     /*
     _    _           _       _
